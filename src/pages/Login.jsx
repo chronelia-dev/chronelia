@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { auth } from '@/lib/supabase'
 import useStore from '@/store/useStore'
 import { toast } from 'sonner'
-import { LogIn, Loader2 } from 'lucide-react'
+import { LogIn, Loader2, Monitor, Smartphone } from 'lucide-react'
+import { canAccessPlatform, getAccessDeniedMessage, APP_CONFIG } from '@/config/appConfig'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -27,9 +28,20 @@ export default function Login() {
           description: error.message,
         })
       } else {
+        const userRole = data.user?.user_metadata?.role
+        
+        // Validar acceso según plataforma
+        if (!canAccessPlatform(userRole)) {
+          toast.error('Acceso denegado', {
+            description: getAccessDeniedMessage(userRole),
+            duration: 6000,
+          })
+          return
+        }
+        
         useStore.setState({ user: data.user })
         toast.success('¡Bienvenido!', {
-          description: 'Has iniciado sesión correctamente',
+          description: `Has iniciado sesión como ${userRole === 'admin' ? 'Administrador' : 'Trabajador'}`,
         })
         navigate('/')
       }
@@ -65,6 +77,19 @@ export default function Login() {
             <p className="mt-2 text-sm text-muted-foreground">
               Sistema de Gestión de Reservas
             </p>
+            <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-semibold">
+              {APP_CONFIG.platform === 'web' ? (
+                <>
+                  <Monitor className="h-3 w-3" />
+                  Panel Web Administrativo
+                </>
+              ) : (
+                <>
+                  <Smartphone className="h-3 w-3" />
+                  App Móvil para Trabajadores
+                </>
+              )}
+            </div>
           </div>
         </div>
 
