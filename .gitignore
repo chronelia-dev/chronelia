@@ -51,3 +51,5 @@ ios/App/build
 .capacitor
 capacitor.config.ts.backup
 
+
+.vercel
