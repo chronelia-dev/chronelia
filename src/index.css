@@ -18,6 +18,9 @@ header {
 #root {
   min-height: 100vh;
   min-height: -webkit-fill-available;
+  background: transparent;
+  position: relative;
+  z-index: 0;
 }
 
 /* Estilos para el escáner de QR activo */
