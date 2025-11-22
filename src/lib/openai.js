@@ -2,7 +2,7 @@
 // CHRONELIA - INTEGRACIÓN CON OPENAI
 // ============================================
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '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'
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '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'
 const OPENAI_MODEL = import.meta.env.VITE_OPENAI_MODEL || 'gpt-4o-mini'
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
 
