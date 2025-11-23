@@ -60,7 +60,7 @@ export default function Login() {
           />
           <div className="text-center">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent drop-shadow-lg" style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700 }}>
-              chronelia
+              chronelia.
             </h1>
             <p className="mt-2 text-sm text-white drop-shadow-md">
               Sistema de Gestión de Reservas
