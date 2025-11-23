@@ -63,7 +63,7 @@ export default function Login() {
               chronelia.
             </h1>
             <p className="mt-2 text-sm text-white drop-shadow-md">
-              Sistema de Gestión de Reservas
+              Sistema de Gestión de Reservas ✓
             </p>
           </div>
         </div>
