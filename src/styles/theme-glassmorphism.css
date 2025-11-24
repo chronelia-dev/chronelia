@@ -117,3 +117,11 @@ body::before {
   background: transparent;
 }
 
+.theme-logo-text {
+  color: white;
+}
+
+.theme-header .theme-logo-text {
+  color: white;
+}
+

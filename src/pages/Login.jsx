@@ -59,10 +59,10 @@ export default function Login() {
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
           />
           <div className="text-center">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold theme-logo-text drop-shadow-lg" style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700 }}>
               Chronelia
             </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm theme-logo-text opacity-80 drop-shadow-md">
               Sistema de Gestión de Reservas
             </p>
           </div>

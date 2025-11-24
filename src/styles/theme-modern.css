@@ -84,3 +84,11 @@
   background: linear-gradient(to bottom right, rgb(252 231 243), rgb(243 232 255), rgb(219 234 254));
 }
 
+.theme-logo-text {
+  color: rgb(31 41 55);
+}
+
+.theme-header .theme-logo-text {
+  color: rgb(31 41 55);
+}
+

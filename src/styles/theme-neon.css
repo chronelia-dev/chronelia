@@ -126,3 +126,13 @@ body {
   }
 }
 
+.theme-logo-text {
+  color: white;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.theme-header .theme-logo-text {
+  color: white;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+

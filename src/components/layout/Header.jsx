@@ -31,7 +31,7 @@ export default function Header() {
         
         <div className="flex items-center space-x-3">
           <img src="/logo.png" alt="chronelia" className="h-10 w-10 object-contain drop-shadow-lg" />
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent" style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700 }}>
+          <h1 className="text-2xl font-bold theme-logo-text drop-shadow-md" style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700 }}>
             chronelia
           </h1>
         </div>

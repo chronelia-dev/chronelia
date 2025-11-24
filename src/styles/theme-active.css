@@ -91,3 +91,11 @@ body {
   background: linear-gradient(to bottom right, rgb(15 23 42), rgb(30 27 75), rgb(67 20 7));
 }
 
+.theme-logo-text {
+  color: white;
+}
+
+.theme-header .theme-logo-text {
+  color: white;
+}
+
