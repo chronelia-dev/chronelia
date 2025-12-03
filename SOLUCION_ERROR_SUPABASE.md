@@ -169,3 +169,6 @@ APK instalada → Credenciales embebidas → Conecta a Supabase → Funciona ✅
 
 
 
+
+
+

@@ -9,3 +9,6 @@ echo Listo! En 2-3 minutos se vera la interfaz original en chronelia.online
 pause
 
 
+
+
+

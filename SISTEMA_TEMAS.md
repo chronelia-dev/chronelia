@@ -30,6 +30,13 @@ Un sistema para cambiar rápidamente entre diferentes estilos gráficos de la ap
 - Colores vibrantes
 - **Script:** `aplicar-tema-neon.bat`
 
+### 5. **Base44** (Nuevo)
+- Inspirado en base44.com
+- Naranja vibrante como color principal
+- Gradientes pastel de fondo (azul→naranja→amarillo)
+- Diseño moderno y limpio
+- **Script:** `aplicar-tema-base44.bat`
+
 ## 🚀 Cómo Usar
 
 1. **Elige un tema** de los disponibles arriba
@@ -82,4 +89,6 @@ Solo cambian colores, fondos y efectos visuales.
 3. Modifica las variables y clases CSS
 4. Crea un script `.bat` similar a los existentes
 5. ¡Listo! Ya puedes aplicarlo
+
+
 

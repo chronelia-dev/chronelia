@@ -1,0 +1,162 @@
+/* TEMA BASE44 - Inspirado en base44.com */
+/* Gradientes pastel, naranja vibrante, diseño moderno */
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 220 20% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 20%;
+    --primary: 18 95% 60%;  /* Naranja vibrante */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 90% 65%;  /* Azul suave */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 15% 95%;
+    --muted-foreground: 220 15% 45%;
+    --accent: 35 100% 60%;  /* Coral */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 18 95% 60%;
+    --radius: 1rem;  /* Esquinas muy redondeadas */
+  }
+}
+
+/* Fondo con gradiente pastel suave */
+body {
+  background: linear-gradient(135deg, 
+    rgb(230, 245, 255) 0%,   /* Azul pastel */
+    rgb(255, 240, 230) 50%,  /* Naranja pastel */
+    rgb(255, 250, 240) 100%  /* Amarillo pastel */
+  );
+  background-attachment: fixed;
+}
+
+/* Cards con sombra suave y backdrop blur ligero */
+.theme-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08),
+              0 2px 8px rgba(0, 0, 0, 0.04);
+  border-radius: 1.5rem;
+}
+
+.theme-card:hover {
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12),
+              0 4px 12px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+/* Header con fondo claro y sombra suave */
+.theme-header {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 107, 53, 0.1);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+}
+
+/* Sidebar con fondo claro */
+.theme-sidebar {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 107, 53, 0.1);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.06);
+}
+
+/* Botones estilo Base44 */
+.theme-button-outline {
+  border: 2px solid rgb(255 107 53);
+  background: white;
+  color: rgb(255 107 53);
+  font-weight: 600;
+  border-radius: 0.75rem;
+}
+
+.theme-button-outline:hover {
+  background: rgb(255 107 53);
+  color: white;
+  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.3);
+}
+
+.theme-button-ghost:hover {
+  background: rgba(255, 107, 53, 0.1);
+  color: rgb(255 107 53);
+}
+
+.theme-button-secondary {
+  background: linear-gradient(135deg, rgb(74 144 226), rgb(91 159 237));
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+.theme-button-secondary:hover {
+  box-shadow: 0 8px 24px rgba(74, 144, 226, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Items del sidebar */
+.theme-sidebar-item-active {
+  background: linear-gradient(135deg, rgb(255 107 53), rgb(255 140 90));
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  border-radius: 0.75rem;
+  font-weight: 600;
+}
+
+.theme-sidebar-item {
+  color: rgb(80 80 80);
+  border-radius: 0.75rem;
+  font-weight: 500;
+}
+
+.theme-sidebar-item:hover {
+  background: rgba(255, 107, 53, 0.08);
+  color: rgb(255 107 53);
+}
+
+/* Login con gradiente pastel */
+.theme-login-bg {
+  background: linear-gradient(135deg, 
+    rgb(230, 245, 255) 0%,   /* Azul pastel */
+    rgb(255, 240, 230) 50%,  /* Naranja pastel */
+    rgb(255, 250, 240) 100%  /* Amarillo pastel */
+  );
+}
+
+/* Texto del logo - Gris oscuro en este tema */
+.theme-logo-text {
+  color: rgb(60 60 60);
+  font-weight: 700;
+}
+
+.theme-header .theme-logo-text {
+  color: rgb(60 60 60);
+}
+
+/* Animación sutil de pulso para elementos importantes */
+@keyframes soft-pulse {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  }
+  50% {
+    box-shadow: 0 8px 24px rgba(255, 107, 53, 0.4);
+  }
+}
+
+/* Gradiente alternativo para variedad */
+.theme-gradient-alt {
+  background: linear-gradient(135deg, 
+    rgb(230, 255, 240) 0%,   /* Verde pastel */
+    rgb(255, 255, 230) 100%  /* Amarillo pastel */
+  );
+}
+
