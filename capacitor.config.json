@@ -6,6 +6,10 @@
     "androidScheme": "https"
   },
   "android": {
-    "allowMixedContent": true
+    "allowMixedContent": true,
+    "buildOptions": {
+      "compileJavaVersion": "17",
+      "targetJavaVersion": "17"
+    }
   }
 }
