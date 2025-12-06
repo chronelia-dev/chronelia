@@ -119,18 +119,18 @@ export default function BottomNav() {
           </div>
 
           {/* Botón central flotante de Escanear */}
-          <motion.button
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={() => setScannerOpen(true)}
-            className="absolute left-1/2 -translate-x-1/2 -top-6 flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 text-white shadow-2xl"
+            className="absolute left-1/2 -translate-x-1/2 -top-6 flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 text-white shadow-2xl active:scale-95 transition-transform"
+            style={{ transformOrigin: 'center center' }}
           >
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center relative z-10">
               <QrCode className="h-8 w-8 mb-1" strokeWidth={2.5} />
               <span className="text-xs font-bold">Escanear</span>
             </div>
             {/* Efecto de pulso */}
             <motion.div
-              className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 to-purple-600"
+              className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 pointer-events-none"
               animate={{
                 scale: [1, 1.2, 1],
                 opacity: [0.5, 0, 0.5],
@@ -141,7 +141,7 @@ export default function BottomNav() {
                 ease: 'easeInOut',
               }}
             />
-          </motion.button>
+          </button>
         </div>
       </nav>
 

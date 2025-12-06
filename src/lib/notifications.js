@@ -74,7 +74,7 @@ export async function createNotificationChannels() {
       await LocalNotifications.createChannel({
         id: 'chronelia-general',
         name: 'Notificaciones Generales',
-        description: 'Notificaciones del sistema Chronelia',
+        description: 'Notificaciones del sistema chronelia.',
         importance: 3, // Default
         sound: 'notification_sound.wav',
         vibration: true
@@ -103,7 +103,7 @@ export async function createNotificationChannels() {
  */
 export async function notifyReservationEnding(clientName) {
   await showNotification({
-    title: '⏰ Chronelia - Alerta de Reserva',
+    title: '⏰ chronelia. - Alerta de Reserva',
     body: `${clientName}: Quedan 5 minutos para finalizar`,
     sound: true,
     urgent: true
@@ -115,12 +115,15 @@ export async function notifyReservationEnding(clientName) {
  */
 export async function notifyReservationFinished(clientName) {
   await showNotification({
-    title: '⏱️ Chronelia - Tiempo Agotado',
+    title: '⏱️ chronelia. - Tiempo Agotado',
     body: `${clientName}: El tiempo ha finalizado`,
     sound: true,
     urgent: true
   })
 }
+
+
+
 
 
 

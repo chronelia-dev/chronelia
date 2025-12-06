@@ -5,30 +5,126 @@ import { Button } from '@/components/ui/Button'
 import useStore from '@/store/useStore'
 import { toast } from 'sonner'
 import jsQR from 'jsqr'
+import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning'
+import { Capacitor } from '@capacitor/core'
 
 export default function QRScannerModal({ isOpen, onClose }) {
   const { addReservation, user } = useStore()
   const [scanning, setScanning] = useState(false)
   const [processing, setProcessing] = useState(false)
   const [cameraError, setCameraError] = useState(null)
+  const [isNativeApp, setIsNativeApp] = useState(false)
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
   const streamRef = useRef(null)
   const scanIntervalRef = useRef(null)
 
+  // Detectar si es app nativa
+  useEffect(() => {
+    const platform = Capacitor.getPlatform()
+    const isNative = platform === 'android' || platform === 'ios'
+    setIsNativeApp(isNative)
+    console.log('📱 QRScanner Modal - Plataforma:', platform, '- Nativa:', isNative)
+  }, [])
+
   useEffect(() => {
     if (isOpen) {
       setProcessing(false)
       setCameraError(null)
-      startCamera()
+      
+      // Si es app nativa, usar ML Kit directamente (sin mostrar modal)
+      if (isNativeApp) {
+        startNativeScanner()
+      } else {
+        // En web, mostrar modal con cámara
+        startCamera()
+      }
     } else {
       stopCamera()
+      // Limpiar ML Kit si se cerró
+      if (isNativeApp) {
+        document.body.classList.remove('qr-scanning')
+      }
     }
 
     return () => {
       stopCamera()
+      if (isNativeApp) {
+        document.body.classList.remove('qr-scanning')
+      }
     }
-  }, [isOpen])
+  }, [isOpen, isNativeApp])
+
+  const startNativeScanner = async () => {
+    console.log('🎯 Iniciando escáner nativo ML Kit...')
+    
+    try {
+      setScanning(true)
+      
+      // Solicitar permisos
+      const permissionResult = await BarcodeScanner.requestPermissions()
+      console.log('🔐 Permisos:', permissionResult)
+      
+      if (permissionResult.camera !== 'granted' && permissionResult.camera !== 'limited') {
+        toast.error('Permiso de cámara denegado', {
+          description: 'Ve a Ajustes → Apps → chronelia. → Permisos → Cámara'
+        })
+        setCameraError('Permiso de cámara denegado')
+        setScanning(false)
+        onClose() // Cerrar modal
+        return
+      }
+
+      // Preparar UI - NO mostrar toast en Android, ML Kit tiene su propia UI
+      document.body.classList.add('qr-scanning')
+      
+      console.log('📷 Iniciando BarcodeScanner.scan()...')
+      
+      // Escanear (BLOQUEANTE)
+      const result = await BarcodeScanner.scan({
+        formats: ['QR_CODE'],
+      })
+      
+      console.log('📷 Resultado:', result)
+      
+      // Verificar resultado
+      if (result && result.barcodes && result.barcodes.length > 0) {
+        const barcodeData = result.barcodes[0]
+        const code = barcodeData.rawValue || barcodeData.displayValue
+        
+        console.log('✅ Código escaneado:', code)
+        toast.success('¡Código QR escaneado!')
+        processQRCode(code)
+        // onClose se llamará después de procesar el QR
+      } else {
+        console.log('⚠️ No se detectaron códigos')
+        toast.info('No se detectó código QR')
+        onClose() // Cerrar modal
+      }
+      
+    } catch (error) {
+      console.error('❌ Error en escáner nativo:', error)
+      
+      // Manejar diferentes tipos de errores
+      if (error.message?.includes('cancel') || error.message?.includes('User')) {
+        toast.info('Escaneo cancelado')
+      } else if (error.message?.includes('permission')) {
+        toast.error('Error de permisos', {
+          description: 'Verifica los permisos de cámara en Ajustes'
+        })
+      } else {
+        toast.error('Error al escanear', {
+          description: error.message
+        })
+      }
+      
+      // Siempre cerrar el modal después de un error
+      onClose()
+    } finally {
+      document.body.classList.remove('qr-scanning')
+      setScanning(false)
+    }
+  }
 
   const startCamera = async () => {
     try {
@@ -126,19 +222,31 @@ export default function QRScannerModal({ isOpen, onClose }) {
         duration: 4000,
       })
 
-      // Pequeño delay para mostrar el feedback antes de cerrar
-      setTimeout(() => {
+      // Cerrar inmediatamente en app nativa, con delay en web
+      if (isNativeApp) {
         stopCamera()
         onClose()
-      }, 800)
+      } else {
+        // Pequeño delay para mostrar el feedback antes de cerrar en web
+        setTimeout(() => {
+          stopCamera()
+          onClose()
+        }, 800)
+      }
     } catch (error) {
       toast.error('❌ Código QR inválido', {
         description: 'El código no tiene el formato correcto. Asegúrate de que el QR contenga un JSON válido.',
         duration: 5000,
       })
-      setTimeout(() => {
-        setProcessing(false)
-      }, 2000)
+      
+      // En app nativa, cerrar inmediatamente después del error
+      if (isNativeApp) {
+        onClose()
+      } else {
+        setTimeout(() => {
+          setProcessing(false)
+        }, 2000)
+      }
     }
   }
 
@@ -154,6 +262,11 @@ export default function QRScannerModal({ isOpen, onClose }) {
   }
 
   if (!isOpen) return null
+
+  // En Android, no mostrar modal - ML Kit tiene su propia UI
+  if (isNativeApp) {
+    return null
+  }
 
   return (
     <AnimatePresence>
@@ -186,13 +299,34 @@ export default function QRScannerModal({ isOpen, onClose }) {
 
           {/* Scanner */}
           <div className="p-6">
-            {cameraError ? (
+            {isNativeApp && scanning ? (
+              // En Android, mostrar solo indicador de carga (ML Kit tiene su propia UI)
+              <div className="text-center py-12">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                >
+                  <Camera className="h-16 w-16 mx-auto mb-4 text-primary" />
+                </motion.div>
+                <p className="text-lg font-semibold mb-2">Escáner activo</p>
+                <p className="text-sm text-muted-foreground">
+                  Apunta al código QR con la cámara
+                </p>
+                <Button 
+                  onClick={onClose}
+                  className="mt-6"
+                  variant="outline"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            ) : cameraError ? (
               <div className="text-center py-12">
                 <Camera className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                 <p className="text-muted-foreground mb-2">Error al acceder a la cámara</p>
                 <p className="text-xs text-muted-foreground">{cameraError}</p>
                 <Button 
-                  onClick={startCamera}
+                  onClick={isNativeApp ? startNativeScanner : startCamera}
                   className="mt-4"
                   variant="outline"
                 >

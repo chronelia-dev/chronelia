@@ -24,6 +24,13 @@ header {
 }
 
 /* Estilos para el escáner de QR activo */
+/* NUEVO: No ocultamos la UI, el plugin maneja su propia vista */
+body.qr-scanning {
+  /* Solo agregamos una clase para indicar el estado */
+  /* El plugin de ML Kit BarcodeScanner maneja su propia UI de cámara */
+}
+
+/* Estilos legacy por si se usa scanner-active en otro lugar */
 html.scanner-active,
 body.scanner-active {
   background: transparent !important;

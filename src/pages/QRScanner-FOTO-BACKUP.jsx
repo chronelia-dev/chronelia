@@ -23,11 +23,15 @@ export default function QRScanner() {
       toast.info('📷 Abriendo cámara...', { duration: 2000 })
       
       // Tomar una foto con la cámara nativa
+      // El plugin de Camera maneja su propia UI, NO necesitamos hacer cambios en nuestra UI
       const image = await CapacitorCamera.getPhoto({
         quality: 90,
         resultType: CameraResultType.Base64,
         source: CameraSource.Camera,
         correctOrientation: true,
+        promptLabelHeader: 'Escanear QR',
+        promptLabelPhoto: 'Tomar foto del código QR',
+        promptLabelPicture: 'Seleccionar foto',
       })
       
       console.log('📸 Foto tomada, procesando...')
@@ -233,7 +237,4 @@ export default function QRScanner() {
     </div>
   )
 }
-
-
-
 

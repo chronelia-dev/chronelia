@@ -128,7 +128,7 @@ export default function AIChat({ isOpen, onClose }) {
                 </div>
                 <div>
                   <h3 className="font-semibold flex items-center gap-2">
-                    Asistente IA chronelia
+                    Asistente IA chronelia.
                     {aiConfigured && (
                       <Zap className="h-4 w-4 text-yellow-500" title="OpenAI Activado" />
                     )}

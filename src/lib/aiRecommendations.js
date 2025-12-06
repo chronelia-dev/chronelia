@@ -1,4 +1,4 @@
-// Sistema de Recomendaciones con IA para Chronelia
+// Sistema de Recomendaciones con IA para chronelia.
 // Analiza datos y genera insights inteligentes
 
 /**

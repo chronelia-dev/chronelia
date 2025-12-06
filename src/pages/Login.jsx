@@ -53,14 +53,14 @@ export default function Login() {
         <div className="mb-8 flex flex-col items-center space-y-4">
           <motion.img
             src="/logo.png"
-            alt="Chronelia"
+            alt="chronelia."
             className="h-24 w-24 object-contain"
             animate={{ rotate: [0, 5, -5, 0] }}
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
           />
           <div className="text-center">
             <h1 className="text-4xl font-bold theme-logo-text drop-shadow-lg" style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700 }}>
-              Chronelia
+              chronelia.
             </h1>
             <p className="mt-2 text-sm theme-logo-text opacity-80 drop-shadow-md">
               Sistema de Gestión de Reservas

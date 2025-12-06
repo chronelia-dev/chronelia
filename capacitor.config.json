@@ -1,6 +1,6 @@
 {
   "appId": "com.chronelia.app",
-  "appName": "chronelia",
+  "appName": "chronelia.",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"

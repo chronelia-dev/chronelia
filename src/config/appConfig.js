@@ -1,5 +1,5 @@
 /**
- * Configuración de la Aplicación Chronelia
+ * Configuración de la Aplicación chronelia.
  * 
  * ARQUITECTURA:
  * - APK (Android): Para trabajadores - Gestión de reservas en campo
@@ -75,7 +75,7 @@ export const SUPABASE_CONFIG = {
   anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6cXRxZmxyaGhqa2Nwa3lmam9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4Nzk0OTYsImV4cCI6MjA3NjQ1NTQ5Nn0.tt_wAEnUqOxgaOrNYVgNo77ju64xdbMKyHdgPGG9Bvs'
 }
 
-console.log(`🚀 Chronelia iniciado en modo: ${APP_CONFIG.platform.toUpperCase()}`)
+console.log(`🚀 chronelia. iniciado en modo: ${APP_CONFIG.platform.toUpperCase()}`)
 console.log(`📱 Plataforma: ${isWebPlatform ? 'WEB (Admin Dashboard)' : 'MOBILE (Worker App)'}`)
 
 

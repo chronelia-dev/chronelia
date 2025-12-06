@@ -31,10 +31,10 @@ export default function Header() {
         </Button>
         
         <div className="flex items-center space-x-3">
-          <img src="/logo.png" alt="chronelia" className="h-10 w-10 object-contain drop-shadow-lg" />
+          <img src="/logo.png" alt="chronelia." className="h-10 w-10 object-contain drop-shadow-lg" />
           <div className="flex flex-col">
             <h1 className="text-2xl font-bold theme-logo-text drop-shadow-md leading-none" style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700 }}>
-              chronelia
+              chronelia.
             </h1>
             {businessName && (
               <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">

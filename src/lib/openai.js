@@ -1,5 +1,5 @@
 // ============================================
-// CHRONELIA - INTEGRACIÓN CON OPENAI
+// chronelia. - INTEGRACIÓN CON OPENAI
 // ============================================
 
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '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'

@@ -22,10 +22,10 @@ export const supabase = isDemoMode
 
 // Log del modo actual
 if (isDemoMode) {
-  console.log('🎭 Chronelia ejecutándose en MODO DEMO (datos locales)')
+  console.log('🎭 chronelia. ejecutándose en MODO DEMO (datos locales)')
   console.log('   Razón: Variables de entorno no configuradas correctamente')
 } else {
-  console.log('☁️ Chronelia conectado a Supabase (datos en la nube)')
+  console.log('☁️ chronelia. conectado a Supabase (datos en la nube)')
   console.log('   URL: ' + supabaseUrl)
 }
 

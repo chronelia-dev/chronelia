@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { QrCode, ArrowLeft, CheckCircle, Camera, AlertCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Camera, Scan } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -23,9 +22,9 @@ export default function QRScanner() {
     setIsSupported(platform === 'android' || platform === 'ios')
   }, [])
 
-  // FUNCIÓN ULTRA SIMPLIFICADA - SOLO ABRE LA CÁMARA
-  const startScanSimple = async () => {
-    console.log('🎯 INICIO: Botón presionado')
+  // ESCANEO EN TIEMPO REAL - SIN MANIPULAR LA UI
+  const startScanning = async () => {
+    console.log('🎯 Iniciando escaneo en tiempo real')
     
     if (!isSupported) {
       toast.error('Escáner no disponible en web')
@@ -34,26 +33,39 @@ export default function QRScanner() {
 
     try {
       setScanning(true)
-      console.log('📷 PASO 1: Preparando UI...')
       
-      // Hacer la UI transparente
-      document.body.classList.add('scanner-active')
-      document.querySelector('html')?.classList.add('scanner-active')
+      console.log('🔐 Paso 1: Solicitando permisos...')
+      const permission = await BarcodeScanner.requestPermissions()
+      console.log('🔐 Resultado permisos:', permission)
       
-      console.log('📷 PASO 2: Solicitando permisos y abriendo cámara...')
+      if (permission.camera !== 'granted' && permission.camera !== 'limited') {
+        toast.error('Permiso de cámara denegado', {
+          description: 'Ve a Ajustes → Apps → Chronelia → Permisos → Cámara'
+        })
+        setScanning(false)
+        return
+      }
+
+      console.log('📷 Paso 2: Preparando escáner...')
       
-      // Solicitar permisos Y abrir la cámara en un solo paso
-      const result = await BarcodeScanner.scan({
-        formats: [], // Todos los formatos
-      })
+      // Agregar clase para indicar que estamos escaneando
+      // PERO NO vamos a ocultar la UI completamente
+      document.body.classList.add('qr-scanning')
       
-      console.log('📷 PASO 3: Resultado:', result)
+      toast.info('📷 Escáner abierto - Apunta al código QR', { duration: 3000 })
+      
+      console.log('📷 Paso 3: Iniciando escaneo...')
+      
+      // El plugin maneja su propia UI de cámara
+      const result = await BarcodeScanner.scan()
+      
+      console.log('📷 Paso 4: Resultado:', result)
       
       if (result && result.barcodes && result.barcodes.length > 0) {
         const code = result.barcodes[0].rawValue
-        console.log('✅ Código escaneado:', code)
+        console.log('✅ Código detectado:', code)
         processQRCode(code)
-        toast.success('¡Código detectado!')
+        toast.success('¡Código QR detectado!')
       } else {
         console.log('⚠️ No se detectó código')
         toast.info('No se detectó código QR')
@@ -63,20 +75,18 @@ export default function QRScanner() {
       console.error('❌ ERROR:', error)
       console.error('❌ Mensaje:', error.message)
       
-      // Mostrar error específico
-      if (error.message?.includes('permission')) {
-        toast.error('Permiso de cámara denegado', {
-          description: 'Ve a Ajustes → Apps → Chronelia → Permisos y activa la cámara',
-        })
-      } else if (error.message?.includes('User cancelled')) {
+      if (error.message?.includes('User cancelled')) {
         toast.info('Escaneo cancelado')
+      } else if (error.message?.includes('permission')) {
+        toast.error('Error de permisos', {
+          description: 'Verifica los permisos de cámara en Ajustes'
+        })
       } else {
-        toast.error('Error: ' + error.message)
+        toast.error('Error al escanear: ' + error.message)
       }
     } finally {
       console.log('🏁 Limpiando...')
-      document.body.classList.remove('scanner-active')
-      document.querySelector('html')?.classList.remove('scanner-active')
+      document.body.classList.remove('qr-scanning')
       setScanning(false)
     }
   }
@@ -137,22 +147,22 @@ export default function QRScanner() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Escanear QR</h1>
           <p className="text-muted-foreground">
-            Versión simplificada - Abre la cámara directamente
+            Escaneo en tiempo real con ML Kit
           </p>
         </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Escáner simplificado */}
+        {/* Escáner en tiempo real */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Camera className="h-5 w-5" />
-              Escanear con Cámara
+              <Scan className="h-5 w-5" />
+              Escanear en Tiempo Real
             </CardTitle>
             <CardDescription>
               {isSupported 
-                ? 'Presiona el botón para abrir la cámara'
+                ? 'Escanea códigos QR en tiempo real con la cámara'
                 : 'Solo funciona en la app móvil'
               }
             </CardDescription>
@@ -160,44 +170,42 @@ export default function QRScanner() {
           <CardContent className="space-y-4">
             {!isSupported ? (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-yellow-800">
-                      Escáner no disponible en web
-                    </p>
-                    <p className="text-xs text-yellow-700">
-                      Instala la APK para usar el escáner
-                    </p>
-                  </div>
-                </div>
+                <p className="text-sm text-yellow-800">
+                  El escáner solo funciona en la app móvil
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
                 <Button 
-                  onClick={startScanSimple} 
+                  onClick={startScanning} 
                   className="w-full" 
                   size="lg"
                   disabled={scanning}
                 >
                   {scanning ? (
                     <>
-                      <Camera className="mr-2 h-5 w-5 animate-pulse" />
-                      Escaneando...
+                      <Scan className="mr-2 h-5 w-5 animate-pulse" />
+                      Escaneando en tiempo real...
                     </>
                   ) : (
                     <>
                       <Camera className="mr-2 h-5 w-5" />
-                      🚀 Abrir Cámara QR
+                      📹 Escanear QR (Tiempo Real)
                     </>
                   )}
                 </Button>
 
                 <div className="text-xs text-muted-foreground space-y-1">
-                  <p>📱 Esta versión abre la cámara directamente</p>
-                  <p>🔐 Android pedirá permisos la primera vez</p>
-                  <p>📷 Apunta al código QR para escanear</p>
-                  <p>❌ Toca fuera para cancelar</p>
+                  <p><strong>Cómo usar:</strong></p>
+                  <p>1️⃣ Presiona el botón</p>
+                  <p>2️⃣ Acepta los permisos de cámara</p>
+                  <p>3️⃣ Apunta al código QR</p>
+                  <p>4️⃣ Se detectará automáticamente</p>
+                  {scanning && (
+                    <p className="text-green-600 font-bold mt-2">
+                      🟢 Escáner activo - Apunta al QR
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -244,16 +252,29 @@ export default function QRScanner() {
         </Card>
       </div>
 
-      {/* Información de depuración */}
-      <Card className="bg-muted">
+      {/* Info */}
+      <Card className={`${scanning ? 'bg-green-50 border-green-300' : 'bg-blue-50 border-blue-200'}`}>
         <CardHeader>
-          <CardTitle className="text-sm">ℹ️ Información de Debug</CardTitle>
+          <CardTitle className="text-sm">
+            {scanning ? '🟢 Escáner Activo' : 'ℹ️ Información'}
+          </CardTitle>
         </CardHeader>
         <CardContent className="text-xs space-y-1">
-          <p>• Plataforma: {Capacitor.getPlatform()}</p>
-          <p>• Escáner soportado: {isSupported ? '✅ Sí' : '❌ No'}</p>
-          <p>• Estado: {scanning ? '🟢 Escaneando' : '⚪ Listo'}</p>
-          <p>• Plugin: @capacitor-mlkit/barcode-scanning</p>
+          {scanning ? (
+            <>
+              <p className="font-bold text-green-700">El escáner está activo</p>
+              <p className="text-green-600">Apunta la cámara al código QR</p>
+              <p className="text-green-600">Se detectará automáticamente</p>
+              <p className="text-green-600">Toca fuera de la cámara para cancelar</p>
+            </>
+          ) : (
+            <>
+              <p>• Plataforma: {Capacitor.getPlatform()}</p>
+              <p>• Escáner soportado: {isSupported ? '✅ Sí' : '❌ No'}</p>
+              <p>• Plugin: @capacitor-mlkit/barcode-scanning</p>
+              <p>• Modo: Escaneo en tiempo real</p>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
