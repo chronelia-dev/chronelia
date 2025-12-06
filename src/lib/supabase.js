@@ -64,104 +64,64 @@ export const auth = {
       return mockAuth.signIn(username, password)
     }
     
-    // Autenticación real con Supabase
+    // Autenticación con Supabase - USA SOLO FUNCIÓN login_user() CON SCHEMAS
     try {
       console.log('🔐 Intentando login con:', username)
       
-      // OPCIÓN 1: Intentar con función login_user() (arquitectura nueva con schemas)
-      try {
-        const { data: loginResult, error: loginError } = await supabase
-          .rpc('login_user', {
-            input_username: username,
-            input_password: password
-          })
+      // Llamar a la función login_user() que maneja schemas
+      const { data: loginResult, error: loginError } = await supabase
+        .rpc('login_user', {
+          input_username: username,
+          input_password: password
+        })
 
-        if (!loginError && loginResult && loginResult.success) {
-          console.log('✅ Login con función login_user() exitoso')
-          
-          // Login exitoso - Guardar información del usuario con schema_name
-          const user = {
-            id: loginResult.user_id,
-            email: loginResult.email,
-            username: loginResult.username,
-            full_name: loginResult.full_name,
-            role: loginResult.role,
-            schema_name: loginResult.schema_name,
-            business_id: loginResult.business_id,
-            business_name: loginResult.business_name,
-            user_metadata: {
-              full_name: loginResult.full_name,
-              role: loginResult.role
-            }
+      console.log('📊 Resultado de login_user:', loginResult)
+
+      if (loginError) {
+        console.error('❌ Error en login_user:', loginError)
+        
+        // Verificar si es porque la función no existe
+        if (loginError.message?.includes('function') || loginError.code === '42883') {
+          return { 
+            data: null, 
+            error: { 
+              message: 'Base de datos no configurada. Ejecuta los scripts SQL en Supabase primero.' 
+            } 
           }
-
-          localStorage.setItem('chronelia_user', JSON.stringify(user))
-          console.log('✅ Login exitoso:', username, '| Negocio:', user.business_name, '| Schema:', user.schema_name)
-          
-          return { data: { user }, error: null }
         }
-      } catch (rpcError) {
-        console.log('⚠️ Función login_user() no disponible, usando método alternativo...')
+        
+        return { data: null, error: { message: 'Error al procesar login' } }
       }
 
-      // OPCIÓN 2: Método de respaldo (arquitectura antigua - sin schemas)
-      console.log('🔄 Usando método de login alternativo (sin schemas)')
-      
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select(`
-          *,
-          business:businesses (
-            id,
-            business_name,
-            schema_name,
-            plan_type,
-            active,
-            max_workers
-          )
-        `)
-        .eq('username', username)
-        .single()
-
-      if (userError) {
-        console.log('❌ Usuario no encontrado:', userError)
-        return { data: null, error: { message: 'Usuario o contraseña incorrectos' } }
+      if (!loginResult) {
+        return { data: null, error: { message: 'Error al procesar login' } }
       }
 
-      if (!userData.active) {
-        return { data: null, error: { message: 'Usuario inactivo' } }
+      if (!loginResult.success) {
+        const errorMsg = loginResult.message || 'Usuario o contraseña incorrectos'
+        console.log('❌', errorMsg)
+        return { data: null, error: { message: errorMsg } }
       }
 
-      // Verificar que el negocio esté activo
-      if (!userData.business || !userData.business.active) {
-        return { data: null, error: { message: 'Negocio inactivo o no asignado' } }
-      }
-
-      // VALIDAR CONTRASEÑA
-      if (userData.password_hash !== password) {
-        console.log('❌ Contraseña incorrecta para:', username)
-        return { data: null, error: { message: 'Usuario o contraseña incorrectos' } }
-      }
-
-      // Login exitoso - Incluir tanto business_id como schema_name (compatibilidad)
+      // Login exitoso - Guardar información del usuario con schema_name
       const user = {
-        id: userData.id,
-        email: userData.email,
-        username: userData.username,
-        full_name: userData.full_name,
-        role: userData.role,
-        business_id: userData.business_id,
-        schema_name: userData.business.schema_name || null,
-        business_name: userData.business.business_name,
-        business_plan: userData.business.plan_type,
+        id: loginResult.user_id,
+        email: loginResult.email,
+        username: loginResult.username,
+        full_name: loginResult.full_name,
+        role: loginResult.role,
+        schema_name: loginResult.schema_name,
+        business_id: loginResult.business_id,
+        business_name: loginResult.business_name,
         user_metadata: {
-          full_name: userData.full_name,
-          role: userData.role
+          full_name: loginResult.full_name,
+          role: loginResult.role
         }
       }
 
       localStorage.setItem('chronelia_user', JSON.stringify(user))
-      console.log('✅ Login exitoso (modo compatibilidad):', username, '| Negocio:', user.business_name)
+      console.log('✅ Login exitoso:', username, '| Negocio:', user.business_name, '| Schema:', user.schema_name)
+      
       return { data: { user }, error: null }
       
     } catch (error) {
