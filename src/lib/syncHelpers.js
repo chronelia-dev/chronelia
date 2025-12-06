@@ -1,17 +1,18 @@
 import {
-  saveReservation,
-  getActiveReservations,
-  getReservationHistory,
-  getWorkers,
-  saveWorker,
-  deleteWorker,
-  updateDailyStats,
-  subscribeToReservations,
   isDemoMode
 } from './supabase'
+import {
+  saveReservationMultiTenant,
+  getActiveReservationsMultiTenant,
+  getReservationHistoryMultiTenant,
+  getWorkersMultiTenant,
+  saveWorkerMultiTenant,
+  deleteWorkerMultiTenant,
+  saveDailyStatsMultiTenant
+} from './multiTenant'
 
 /**
- * Sincronizar reserva activa con Supabase
+ * Sincronizar reserva activa con Supabase (Multi-Tenant)
  */
 export async function syncReservation(reservation) {
   if (isDemoMode) {
@@ -20,7 +21,7 @@ export async function syncReservation(reservation) {
   }
 
   try {
-    const { data, error } = await saveReservation({
+    const { data, error } = await saveReservationMultiTenant({
       id: reservation.id,
       customer_name: reservation.clientName,
       customer_email: reservation.clientEmail,
@@ -30,7 +31,8 @@ export async function syncReservation(reservation) {
       start_time: reservation.startTime,
       end_time: reservation.endTime,
       status: reservation.status,
-      worker_id: reservation.workerId,
+      worker_name: reservation.worker,
+      group_size: reservation.groupSize,
       extensions: reservation.extensions || 0
     })
 
@@ -48,7 +50,7 @@ export async function syncReservation(reservation) {
 }
 
 /**
- * Cargar reservas activas desde Supabase
+ * Cargar reservas activas desde Supabase (Multi-Tenant)
  */
 export async function loadActiveReservations() {
   if (isDemoMode) {
@@ -57,7 +59,7 @@ export async function loadActiveReservations() {
   }
 
   try {
-    const { data, error } = await getActiveReservations()
+    const { data, error } = await getActiveReservationsMultiTenant()
     
     if (error) {
       console.error('❌ Error cargando reservas activas:', error)
@@ -76,7 +78,8 @@ export async function loadActiveReservations() {
       startTime: new Date(r.start_time),
       endTime: r.end_time ? new Date(r.end_time) : null,
       status: r.status,
-      workerId: r.worker_id,
+      worker: r.worker_name,
+      groupSize: r.group_size,
       extensions: r.extensions || 0,
       notified: false // Se calcula en cliente
     }))
@@ -90,7 +93,7 @@ export async function loadActiveReservations() {
 }
 
 /**
- * Cargar historial de reservas desde Supabase
+ * Cargar historial de reservas desde Supabase (Multi-Tenant)
  */
 export async function loadReservationHistory(limit = 50) {
   if (isDemoMode) {
@@ -99,7 +102,7 @@ export async function loadReservationHistory(limit = 50) {
   }
 
   try {
-    const { data, error } = await getReservationHistory(limit)
+    const { data, error } = await getReservationHistoryMultiTenant(limit)
     
     if (error) {
       console.error('❌ Error cargando historial:', error)
@@ -117,7 +120,8 @@ export async function loadReservationHistory(limit = 50) {
       startTime: new Date(r.start_time),
       endTime: r.end_time ? new Date(r.end_time) : null,
       status: r.status,
-      workerId: r.worker_id
+      worker: r.worker_name,
+      groupSize: r.group_size
     }))
 
     console.log(`✅ Cargadas ${history.length} reservas del historial`)
@@ -129,7 +133,7 @@ export async function loadReservationHistory(limit = 50) {
 }
 
 /**
- * Cargar trabajadores desde Supabase
+ * Cargar trabajadores desde Supabase (Multi-Tenant)
  */
 export async function loadWorkers() {
   if (isDemoMode) {
@@ -138,7 +142,7 @@ export async function loadWorkers() {
   }
 
   try {
-    const { data, error } = await getWorkers()
+    const { data, error } = await getWorkersMultiTenant()
     
     if (error) {
       console.error('❌ Error cargando trabajadores:', error)
@@ -165,7 +169,7 @@ export async function loadWorkers() {
 }
 
 /**
- * Sincronizar trabajador con Supabase
+ * Sincronizar trabajador con Supabase (Multi-Tenant)
  */
 export async function syncWorker(worker) {
   if (isDemoMode) {
@@ -174,7 +178,7 @@ export async function syncWorker(worker) {
   }
 
   try {
-    const { data, error } = await saveWorker(worker)
+    const { data, error } = await saveWorkerMultiTenant(worker)
 
     if (error) {
       console.error('❌ Error sincronizando trabajador:', error)
@@ -190,7 +194,7 @@ export async function syncWorker(worker) {
 }
 
 /**
- * Eliminar trabajador de Supabase
+ * Eliminar trabajador de Supabase (Multi-Tenant)
  */
 export async function removeWorkerFromCloud(workerId) {
   if (isDemoMode) {
@@ -199,7 +203,7 @@ export async function removeWorkerFromCloud(workerId) {
   }
 
   try {
-    const { error } = await deleteWorker(workerId)
+    const { error } = await deleteWorkerMultiTenant(workerId)
 
     if (error) {
       console.error('❌ Error eliminando trabajador:', error)
@@ -215,7 +219,7 @@ export async function removeWorkerFromCloud(workerId) {
 }
 
 /**
- * Sincronizar estadísticas diarias
+ * Sincronizar estadísticas diarias (Multi-Tenant)
  */
 export async function syncDailyStats(stats) {
   if (isDemoMode) {
@@ -225,7 +229,8 @@ export async function syncDailyStats(stats) {
 
   try {
     const today = new Date().toISOString().split('T')[0]
-    const { data, error } = await updateDailyStats(today, {
+    const { data, error } = await saveDailyStatsMultiTenant({
+      date: today,
       total_reservations: stats.totalReservations || 0,
       completed_reservations: stats.completedReservations || 0,
       cancelled_reservations: stats.cancelledReservations || 0,
@@ -249,6 +254,7 @@ export async function syncDailyStats(stats) {
 
 /**
  * Inicializar sincronización en tiempo real
+ * NOTA: Por ahora deshabilitado para multi-tenant con schemas
  */
 export function setupRealtimeSync(onReservationChange) {
   if (isDemoMode) {
@@ -256,18 +262,9 @@ export function setupRealtimeSync(onReservationChange) {
     return null
   }
 
-  console.log('🔄 Configurando sincronización en tiempo real...')
-
-  const subscription = subscribeToReservations((payload) => {
-    console.log('📡 Cambio en tiempo real:', payload)
-    
-    // Llamar al callback con los datos actualizados
-    if (onReservationChange) {
-      onReservationChange(payload)
-    }
-  })
-
-  return subscription
+  console.log('⚠️ Sincronización en tiempo real temporalmente deshabilitada para arquitectura multi-tenant')
+  // TODO: Implementar realtime con filtros por schema
+  return null
 }
 
 /**

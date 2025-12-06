@@ -1,4 +1,4 @@
-import { Menu, LogOut, User, Shield } from 'lucide-react'
+import { Menu, LogOut, User, Shield, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import useStore from '@/store/useStore'
@@ -9,6 +9,7 @@ export default function Header() {
   const { toggleSidebar, user } = useStore()
   const navigate = useNavigate()
   const isAdmin = user?.user_metadata?.role === 'admin'
+  const businessName = user?.business_name || null
 
   const handleLogout = async () => {
     await mockAuth.signOut()
@@ -31,9 +32,17 @@ export default function Header() {
         
         <div className="flex items-center space-x-3">
           <img src="/logo.png" alt="chronelia" className="h-10 w-10 object-contain drop-shadow-lg" />
-          <h1 className="text-2xl font-bold theme-logo-text drop-shadow-md" style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700 }}>
-            chronelia
-          </h1>
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-bold theme-logo-text drop-shadow-md leading-none" style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700 }}>
+              chronelia
+            </h1>
+            {businessName && (
+              <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                <Building2 className="h-3 w-3" />
+                {businessName}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="ml-auto flex items-center gap-2 md:gap-4">

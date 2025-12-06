@@ -64,48 +64,53 @@ export const auth = {
       return mockAuth.signIn(username, password)
     }
     
-    // Autenticación real con Supabase - VALIDACIÓN DE CONTRASEÑA
+    // Autenticación real con Supabase - USA FUNCIÓN login_user() CON SCHEMAS
     try {
-      // Buscar usuario en la tabla users por username
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('username', username)
-        .single()
+      console.log('🔐 Intentando login con:', username)
+      
+      // Llamar a la función login_user() que maneja schemas
+      const { data: loginResult, error: loginError } = await supabase
+        .rpc('login_user', {
+          input_username: username,
+          input_password: password
+        })
 
-      if (userError) {
-        console.log('❌ Usuario no encontrado:', userError)
-        return { data: null, error: { message: 'Usuario o contraseña incorrectos' } }
+      console.log('📊 Resultado de login_user:', loginResult)
+
+      if (loginError) {
+        console.error('❌ Error en login_user:', loginError)
+        return { data: null, error: { message: 'Error al procesar login' } }
       }
 
-      if (!userData.active) {
-        return { data: null, error: { message: 'Usuario inactivo' } }
+      if (!loginResult || !loginResult.success) {
+        const errorMsg = loginResult?.message || 'Usuario o contraseña incorrectos'
+        console.log('❌', errorMsg)
+        return { data: null, error: { message: errorMsg } }
       }
 
-      // VALIDAR CONTRASEÑA - Por ahora comparación directa
-      // En producción usar bcrypt o similar
-      if (userData.password_hash !== password) {
-        console.log('❌ Contraseña incorrecta para:', username)
-        return { data: null, error: { message: 'Usuario o contraseña incorrectos' } }
-      }
-
-      // Login exitoso
+      // Login exitoso - Guardar información del usuario con schema_name
       const user = {
-        id: userData.id,
-        email: userData.email,
-        username: userData.username,
+        id: loginResult.user_id,
+        email: loginResult.email,
+        username: loginResult.username,
+        full_name: loginResult.full_name,
+        role: loginResult.role,
+        schema_name: loginResult.schema_name,
+        business_id: loginResult.business_id,
+        business_name: loginResult.business_name,
         user_metadata: {
-          full_name: userData.full_name,
-          role: userData.role
+          full_name: loginResult.full_name,
+          role: loginResult.role
         }
       }
 
       localStorage.setItem('chronelia_user', JSON.stringify(user))
-      console.log('✅ Login exitoso:', username)
+      console.log('✅ Login exitoso:', username, '| Negocio:', user.business_name, '| Schema:', user.schema_name)
+      
       return { data: { user }, error: null }
     } catch (error) {
-      console.error('❌ Error en login:', error)
-      return { data: null, error: { message: error.message } }
+      console.error('❌ Error inesperado en login:', error)
+      return { data: null, error: { message: error.message || 'Error al iniciar sesión' } }
     }
   },
 
