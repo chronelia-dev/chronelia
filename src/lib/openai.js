@@ -43,7 +43,7 @@ export function generateContext(store) {
   ).join(', ')
 
   return `
-Eres un asistente IA especializado en el sistema de gestión de reservas "chronelia". 
+Eres un asistente IA especializado en el sistema de gestión y crecimiento empresarial "chronelia". 
 
 DATOS ACTUALES DEL NEGOCIO:
 

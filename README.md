@@ -1,4 +1,4 @@
-# 🕐 Chronelia - Sistema de Gestión de Reservas
+# 🕐 Chronelia - Sistema de Gestión y Crecimiento Empresarial
 
 ![Chronelia Logo](public/logo.svg)
 
