@@ -33,12 +33,24 @@ export async function testOpenAIConnection() {
 
     const startTime = Date.now()
 
-    const response = await fetch(OPENAI_API_URL, {
+    // Determinar si estamos en producción o desarrollo
+    const isProduction = typeof window !== 'undefined' && 
+                        window.location.hostname !== 'localhost' && 
+                        !window.location.hostname.includes('127.0.0.1')
+    
+    const apiUrl = isProduction ? '/api/chat' : OPENAI_API_URL
+    const headers = isProduction 
+      ? { 'Content-Type': 'application/json' }
+      : {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        }
+
+    console.log('📡 Usando API:', isProduction ? 'Serverless (/api/chat)' : 'Directa (OpenAI)')
+
+    const response = await fetch(apiUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
-      },
+      headers,
       body: JSON.stringify({
         model: OPENAI_MODEL,
         messages: [

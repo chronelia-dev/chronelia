@@ -135,20 +135,29 @@ Mientras tanto, puedo responder preguntas básicas usando el sistema local.`
       }
     ]
 
-    // Llamar a OpenAI API
-    const response = await fetch(OPENAI_API_URL, {
+    // Determinar si estamos en producción o desarrollo
+    const isProduction = window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')
+    
+    // Usar API serverless en producción, llamada directa en desarrollo
+    const apiUrl = isProduction ? '/api/chat' : OPENAI_API_URL
+    const headers = isProduction 
+      ? { 'Content-Type': 'application/json' }
+      : {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        }
+
+    console.log('📡 Usando API:', isProduction ? 'Serverless (/api/chat)' : 'Directa (OpenAI)')
+
+    // Llamar a la API (serverless en producción, directa en desarrollo)
+    const response = await fetch(apiUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
-      },
+      headers,
       body: JSON.stringify({
         model: OPENAI_MODEL,
         messages: messages,
         temperature: 0.7,
-        max_tokens: 500,
-        presence_penalty: 0.6,
-        frequency_penalty: 0.3
+        max_tokens: 500
       })
     })
 
