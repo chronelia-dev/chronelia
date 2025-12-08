@@ -16,18 +16,12 @@ export default function Settings() {
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [defaultDuration, setDefaultDuration] = useState('30')
   const [warningTime, setWarningTime] = useState('5')
-  const [clientNumber, setClientNumber] = useState(
-    localStorage.getItem('chronelia_client_number') || ''
-  )
+  // Número de cliente/negocio viene directamente de la BD (no editable)
+  const businessName = user?.business_name || 'No asignado'
+  const businessId = user?.business_id || null
 
   const handleSave = () => {
-    // Guardar configuración
-    if (clientNumber.trim()) {
-      localStorage.setItem('chronelia_client_number', clientNumber.trim())
-    } else {
-      localStorage.removeItem('chronelia_client_number')
-    }
-    
+    // Guardar configuración (el número de cliente no se guarda, viene de la BD)
     toast.success('Configuración guardada', {
       description: 'Tus preferencias han sido actualizadas',
     })
@@ -225,12 +219,12 @@ export default function Settings() {
               </label>
               <Input
                 type="text"
-                value={clientNumber}
-                onChange={(e) => setClientNumber(e.target.value)}
-                placeholder="Ej: CLI-001, NEGOCIO-123"
+                value={businessName}
+                disabled
+                className="bg-muted/50 font-semibold text-primary"
               />
               <p className="text-xs text-muted-foreground">
-                Identificador único para diferenciar entre diferentes negocios o ubicaciones
+                Identificador permanente del negocio (no editable). Este nombre se usa en toda la aplicación.
               </p>
             </div>
             
@@ -249,10 +243,16 @@ export default function Settings() {
                 <span className="text-muted-foreground">Estado</span>
                 <span className="font-medium text-green-600">Operativo</span>
               </div>
-              {clientNumber && (
+              {businessName && businessName !== 'No asignado' && (
                 <div className="flex justify-between pt-2 border-t">
-                  <span className="text-muted-foreground">Número de Cliente</span>
-                  <span className="font-medium text-purple-600">{clientNumber}</span>
+                  <span className="text-muted-foreground">Negocio</span>
+                  <span className="font-medium text-purple-600">{businessName}</span>
+                </div>
+              )}
+              {businessId && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">ID de Negocio</span>
+                  <span className="font-mono text-xs text-muted-foreground">{businessId}</span>
                 </div>
               )}
             </div>
