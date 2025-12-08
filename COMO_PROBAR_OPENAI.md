@@ -349,3 +349,4 @@ He mejorado el código para prevenir el error:
 **Versión:** 1.0  
 **Propósito:** Diagnosticar problemas de OpenAI en Chronelia
 
+

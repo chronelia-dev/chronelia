@@ -11,6 +11,7 @@ import Settings from '@/pages/Settings'
 import AdminPanel from '@/pages/AdminPanel'
 import Workers from '@/pages/Workers'
 import Recommendations from '@/pages/Recommendations'
+import OpenAITest from '@/components/OpenAITest'
 import useStore from '@/store/useStore'
 import { mockAuth } from '@/lib/supabase'
 
@@ -44,6 +45,8 @@ function App() {
       <Toaster position="top-right" richColors closeButton />
       <Routes>
         <Route path="/login" element={<Login />} />
+        {/* Ruta temporal para pruebas de OpenAI */}
+        <Route path="/test-openai" element={<OpenAITest />} />
         <Route
           path="/"
           element={

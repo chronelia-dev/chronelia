@@ -17,7 +17,19 @@ export const isOpenAIConfigured = () => {
  * @returns {string} Contexto formateado para la IA
  */
 export function generateContext(store) {
-  const { activeReservations, workers, dailyStats, history } = store
+  // Validar que store existe y tiene las propiedades necesarias
+  if (!store) {
+    console.warn('⚠️ Store is undefined')
+    return 'Eres un asistente IA especializado en el sistema de gestión "chronelia".'
+  }
+
+  // Usar valores por defecto si las propiedades no existen
+  const { 
+    activeReservations = [], 
+    workers = [], 
+    dailyStats = [], 
+    history = [] 
+  } = store
 
   // Calcular estadísticas en tiempo real
   const totalReservations = history.length
@@ -38,9 +50,11 @@ export function generateContext(store) {
   const totalRevenue = dailyStats.reduce((acc, s) => acc + (s.revenue || 0), 0)
 
   // Últimas reservas
-  const recentReservations = history.slice(-5).map(r => 
-    `${r.clientName} (${r.duration} min)`
-  ).join(', ')
+  const recentReservations = history.length > 0
+    ? history.slice(-5).map(r => 
+        `${r.clientName} (${r.duration} min)`
+      ).join(', ')
+    : 'Ninguna'
 
   return `
 Eres un asistente IA especializado en el sistema de gestión y crecimiento empresarial "chronelia". 
