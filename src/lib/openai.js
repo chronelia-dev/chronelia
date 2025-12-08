@@ -157,10 +157,24 @@ Mientras tanto, puedo responder preguntas básicas usando el sistema local.`
     }
 
     const data = await response.json()
+    console.log('📦 Datos recibidos de OpenAI:', data)
+    
+    // Validar estructura de la respuesta
+    if (!data || !data.choices || !Array.isArray(data.choices)) {
+      console.error('❌ Respuesta inválida - no tiene choices:', data)
+      throw new Error('Respuesta de OpenAI con formato inválido')
+    }
+
+    if (data.choices.length === 0) {
+      console.error('❌ Respuesta vacía - choices está vacío')
+      throw new Error('OpenAI no devolvió ninguna respuesta')
+    }
+
     const aiMessage = data.choices[0]?.message?.content
 
-    if (!aiMessage) {
-      throw new Error('No se recibió respuesta de OpenAI')
+    if (!aiMessage || typeof aiMessage !== 'string') {
+      console.error('❌ Mensaje inválido:', data.choices[0])
+      throw new Error('No se recibió contenido válido de OpenAI')
     }
 
     console.log('✅ Respuesta recibida de OpenAI')
