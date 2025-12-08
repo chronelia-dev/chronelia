@@ -14,18 +14,30 @@ export async function testOpenAIConnection() {
   const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
 
   console.log('🧪 Iniciando test de OpenAI...')
+  
+  // Determinar si estamos en producción
+  const isProduction = typeof window !== 'undefined' && 
+                      window.location.hostname !== 'localhost' && 
+                      !window.location.hostname.includes('127.0.0.1')
+
   console.log('📝 Configuración:')
   console.log('  - Modelo:', OPENAI_MODEL)
-  console.log('  - API Key:', OPENAI_API_KEY ? `${OPENAI_API_KEY.substring(0, 20)}...` : '❌ NO CONFIGURADA')
-
-  // Verificar que existe la API key
-  if (!OPENAI_API_KEY || OPENAI_API_KEY === 'sk-your-api-key-here') {
-    return {
-      success: false,
-      error: 'NO_API_KEY',
-      message: 'API key no configurada. Verifica tu archivo .env.local',
-      details: 'Debe existir VITE_OPENAI_API_KEY en .env.local'
+  console.log('  - Entorno:', isProduction ? 'Producción (Serverless)' : 'Desarrollo (Directo)')
+  
+  if (!isProduction) {
+    console.log('  - API Key:', OPENAI_API_KEY ? `${OPENAI_API_KEY.substring(0, 20)}...` : '❌ NO CONFIGURADA')
+    
+    // Solo verificar API key en desarrollo
+    if (!OPENAI_API_KEY || OPENAI_API_KEY === 'sk-your-api-key-here') {
+      return {
+        success: false,
+        error: 'NO_API_KEY',
+        message: 'API key no configurada en desarrollo. Verifica tu archivo .env.local',
+        details: 'Debe existir VITE_OPENAI_API_KEY en .env.local'
+      }
     }
+  } else {
+    console.log('  - API Key: Configurada en servidor ✅')
   }
 
   try {

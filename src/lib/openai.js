@@ -100,14 +100,19 @@ INSTRUCCIONES:
  * @returns {Promise<string>} Respuesta de la IA
  */
 export async function generateAIResponse(userMessage, store, conversationHistory = []) {
-  // Verificar configuración
-  if (!isOpenAIConfigured()) {
+  // Determinar si estamos en producción
+  const isProduction = typeof window !== 'undefined' && 
+                      window.location.hostname !== 'localhost' && 
+                      !window.location.hostname.includes('127.0.0.1')
+  
+  // Solo verificar configuración en desarrollo
+  if (!isProduction && !isOpenAIConfigured()) {
     return `⚙️ **OpenAI no está configurado**
 
 Para usar el chat IA con respuestas avanzadas, necesitas:
 
 1. Obtener una API key de OpenAI en https://platform.openai.com/api-keys
-2. Agregar la key al archivo \`.env\`:
+2. Agregar la key al archivo \`.env.local\`:
    \`\`\`
    VITE_OPENAI_API_KEY=sk-tu-api-key-aqui
    \`\`\`
