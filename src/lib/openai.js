@@ -214,6 +214,8 @@ console.log('🔧 Estado de OpenAI:', {
   configured: isOpenAIConfigured(),
   model: OPENAI_MODEL,
   hasKey: Boolean(OPENAI_API_KEY),
-  keyPreview: OPENAI_API_KEY ? `${OPENAI_API_KEY.substring(0, 10)}...` : 'No configurada'
+  keyPreview: OPENAI_API_KEY ? `${OPENAI_API_KEY.substring(0, 10)}...` : 'No configurada',
+  keyLength: OPENAI_API_KEY ? OPENAI_API_KEY.length : 0,
+  envVarRaw: import.meta.env.VITE_OPENAI_API_KEY ? 'Presente en import.meta.env ✅' : 'NO presente en import.meta.env ❌'
 })
 
