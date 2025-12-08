@@ -27,11 +27,24 @@ export default function Login() {
           description: error.message,
         })
       } else {
+        // Guardar usuario en el store
         useStore.setState({ user: data.user })
-        toast.success('¡Bienvenido!', {
-          description: 'Has iniciado sesión correctamente',
-        })
-        navigate('/')
+        
+        // Cargar datos del negocio desde Supabase
+        console.log('📥 Cargando datos del negocio...')
+        const loadResult = await useStore.getState().loadBusinessData()
+        
+        if (loadResult.success) {
+          toast.success('¡Bienvenido!', {
+            description: `${data.user.full_name || data.user.username} - ${data.user.business_name}`,
+          })
+          navigate('/')
+        } else {
+          toast.warning('Sesión iniciada', {
+            description: 'Algunos datos no se pudieron cargar',
+          })
+          navigate('/')
+        }
       }
     } catch (error) {
       toast.error('Error inesperado', {

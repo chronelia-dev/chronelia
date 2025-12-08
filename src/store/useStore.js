@@ -1,5 +1,13 @@
 import { create } from 'zustand'
-import { syncReservation, syncWorker, removeWorkerFromCloud, syncDailyStats } from '@/lib/syncHelpers'
+import { 
+  syncReservation, 
+  syncWorker, 
+  removeWorkerFromCloud, 
+  syncDailyStats,
+  loadActiveReservations,
+  loadWorkers,
+  loadReservationHistory
+} from '@/lib/syncHelpers'
 
 // Generar UUID v4 válido
 function generateUUID() {
@@ -15,25 +23,8 @@ const useStore = create((set, get) => ({
   user: null,
   setUser: (user) => set({ user }),
   
-  // Workers management
-  workers: [
-    {
-      id: '1',
-      name: 'Juan Trabajador',
-      email: 'trabajador@chronelia.com',
-      role: 'worker',
-      active: true,
-      createdAt: new Date(),
-    },
-    {
-      id: '2',
-      name: 'María Empleada',
-      email: 'maria@chronelia.com',
-      role: 'worker',
-      active: true,
-      createdAt: new Date(),
-    },
-  ],
+  // Workers management (se cargan desde Supabase)
+  workers: [],
   
   addWorker: async (worker) => {
     const newWorker = {
@@ -84,22 +75,8 @@ const useStore = create((set, get) => ({
   sidebarOpen: typeof window !== 'undefined' && window.innerWidth >= 768 ? true : false,
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
   
-  // Reservas activas
-  activeReservations: [
-    {
-      id: '1',
-      clientName: 'Ana Pérez',
-      clientEmail: 'ana.perez@email.com',
-      qrCode: 'QR123456',
-      totalDuration: 1800, // 30 minutos en segundos
-      remainingTime: 600, // 10 minutos restantes
-      startTime: new Date(Date.now() - 20 * 60 * 1000), // Empezó hace 20 min
-      worker: 'Trabajador Demo',
-      groupSize: 2,
-      status: 'active',
-      notified: false,
-    }
-  ],
+  // Reservas activas (se cargan desde Supabase)
+  activeReservations: [],
   
   // Historial de reservas
   reservationHistory: [],
@@ -219,6 +196,96 @@ const useStore = create((set, get) => ({
         }
       })
     }
+  },
+
+  // ============================================
+  // CARGAR DATOS REALES DESDE SUPABASE
+  // ============================================
+  
+  /**
+   * Cargar todos los datos del negocio desde Supabase
+   * Se llama después del login exitoso
+   */
+  loadBusinessData: async () => {
+    try {
+      console.log('🔄 Cargando datos del negocio desde Supabase...')
+      
+      // Cargar trabajadores
+      const workers = await loadWorkers()
+      console.log(`✅ Trabajadores cargados: ${workers.length}`)
+      
+      // Cargar reservas activas
+      const activeReservations = await loadActiveReservations()
+      console.log(`✅ Reservas activas cargadas: ${activeReservations.length}`)
+      
+      // Cargar historial (últimas 100 reservas)
+      const history = await loadReservationHistory(100)
+      console.log(`✅ Historial cargado: ${history.length} reservas`)
+      
+      // Actualizar el store
+      set({
+        workers,
+        activeReservations,
+        reservationHistory: history
+      })
+      
+      // Actualizar estadísticas
+      get().updateTodayStats()
+      
+      console.log('✅ Datos del negocio cargados exitosamente')
+      return { success: true }
+      
+    } catch (error) {
+      console.error('❌ Error cargando datos del negocio:', error)
+      return { success: false, error }
+    }
+  },
+
+  /**
+   * Recargar trabajadores desde Supabase
+   */
+  reloadWorkers: async () => {
+    try {
+      const workers = await loadWorkers()
+      set({ workers })
+      console.log(`✅ Trabajadores recargados: ${workers.length}`)
+      return { success: true, workers }
+    } catch (error) {
+      console.error('❌ Error recargando trabajadores:', error)
+      return { success: false, error }
+    }
+  },
+
+  /**
+   * Recargar reservas activas desde Supabase
+   */
+  reloadActiveReservations: async () => {
+    try {
+      const activeReservations = await loadActiveReservations()
+      set({ activeReservations })
+      console.log(`✅ Reservas activas recargadas: ${activeReservations.length}`)
+      return { success: true, activeReservations }
+    } catch (error) {
+      console.error('❌ Error recargando reservas activas:', error)
+      return { success: false, error }
+    }
+  },
+
+  /**
+   * Limpiar datos al cerrar sesión
+   */
+  clearBusinessData: () => {
+    set({
+      workers: [],
+      activeReservations: [],
+      reservationHistory: [],
+      todayStats: {
+        completedReservations: 0,
+        averageDuration: 0,
+        totalTime: 0,
+      }
+    })
+    console.log('🗑️ Datos del negocio limpiados')
   },
 }))
 

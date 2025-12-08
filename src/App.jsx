@@ -35,6 +35,9 @@ function App() {
       const { data } = await mockAuth.getUser()
       if (data.user) {
         setUser(data.user)
+        // Cargar datos del negocio si el usuario ya está autenticado
+        console.log('👤 Usuario encontrado, cargando datos...')
+        await useStore.getState().loadBusinessData()
       }
     }
     checkUser()
