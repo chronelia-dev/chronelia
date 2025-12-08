@@ -75,7 +75,9 @@ export const auth = {
           input_password: password
         })
 
-      console.log('📊 Resultado de login_user:', loginResult)
+      console.log('📊 Resultado de login_user (raw):', loginResult)
+      console.log('📊 Tipo de loginResult:', typeof loginResult)
+      console.log('📊 Es array?:', Array.isArray(loginResult))
 
       if (loginError) {
         console.error('❌ Error en login_user:', loginError)
@@ -90,32 +92,37 @@ export const auth = {
           }
         }
         
-        return { data: null, error: { message: 'Error al procesar login' } }
+        return { data: null, error: { message: 'Error al procesar login: ' + loginError.message } }
       }
 
-      if (!loginResult) {
-        return { data: null, error: { message: 'Error al procesar login' } }
+      // La función retorna una tabla, tomamos el primer resultado
+      const result = Array.isArray(loginResult) ? loginResult[0] : loginResult
+      
+      console.log('📊 Resultado procesado:', result)
+
+      if (!result) {
+        return { data: null, error: { message: 'Error al procesar login: respuesta vacía' } }
       }
 
-      if (!loginResult.success) {
-        const errorMsg = loginResult.message || 'Usuario o contraseña incorrectos'
+      if (!result.success) {
+        const errorMsg = result.message || 'Usuario o contraseña incorrectos'
         console.log('❌', errorMsg)
         return { data: null, error: { message: errorMsg } }
       }
 
       // Login exitoso - Guardar información del usuario con schema_name
       const user = {
-        id: loginResult.user_id,
-        email: loginResult.email,
-        username: loginResult.username,
-        full_name: loginResult.full_name,
-        role: loginResult.role,
-        schema_name: loginResult.schema_name,
-        business_id: loginResult.business_id,
-        business_name: loginResult.business_name,
+        id: result.user_id,
+        email: result.email,
+        username: result.username,
+        full_name: result.full_name,
+        role: result.role,
+        schema_name: result.schema_name,
+        business_id: result.business_id,
+        business_name: result.business_name,
         user_metadata: {
-          full_name: loginResult.full_name,
-          role: loginResult.role
+          full_name: result.full_name,
+          role: result.role
         }
       }
 
@@ -126,6 +133,7 @@ export const auth = {
       
     } catch (error) {
       console.error('❌ Error inesperado en login:', error)
+      console.error('❌ Stack:', error.stack)
       return { data: null, error: { message: error.message || 'Error al iniciar sesión' } }
     }
   },
