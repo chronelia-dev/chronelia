@@ -99,13 +99,22 @@ const useStore = create((set, get) => ({
       notified: false,
     }
     
-    // Actualizar estado local
-    set((state) => ({
-      activeReservations: [...state.activeReservations, newReservation]
-    }))
+    console.log('➕ Agregando nueva reserva:', newReservation.id)
     
-    // Sincronizar con Supabase
-    await syncReservation(newReservation)
+    // Sincronizar PRIMERO con Supabase
+    const syncResult = await syncReservation(newReservation)
+    
+    if (syncResult.success) {
+      console.log('✅ Reserva guardada en BD:', newReservation.id)
+      // Solo actualizar estado local si se guardó exitosamente
+      set((state) => ({
+        activeReservations: [...state.activeReservations, newReservation]
+      }))
+    } else {
+      console.error('❌ Error guardando reserva:', syncResult.error)
+      // Mostrar error al usuario
+      throw new Error('No se pudo guardar la reserva en la base de datos')
+    }
   },
   
   // Actualizar tiempo restante
@@ -307,14 +316,38 @@ const useStore = create((set, get) => ({
       console.log('🔄 Auto-sync: Actualizando datos...')
       
       try {
-        // Recargar reservas activas (las más importantes)
-        const activeReservations = await loadActiveReservations()
+        // Recargar reservas activas desde la BD
+        const activeReservationsFromDB = await loadActiveReservations()
         
-        // Solo actualizar si hay cambios
+        // Fusionar con reservas locales (mantener las recién creadas)
         const currentReservations = get().activeReservations
-        if (JSON.stringify(activeReservations) !== JSON.stringify(currentReservations)) {
-          set({ activeReservations })
-          console.log('✅ Reservas activas actualizadas:', activeReservations.length)
+        const currentIds = new Set(currentReservations.map(r => r.id))
+        const dbIds = new Set(activeReservationsFromDB.map(r => r.id))
+        
+        // Reservas que existen en ambos lados -> usar la de BD
+        const updatedReservations = activeReservationsFromDB.filter(r => currentIds.has(r.id))
+        
+        // Reservas nuevas desde BD que no están en local
+        const newFromDB = activeReservationsFromDB.filter(r => !currentIds.has(r.id))
+        
+        // Reservas locales muy recientes (< 15 segundos) que aún no están en BD
+        const recentLocal = currentReservations.filter(r => {
+          if (dbIds.has(r.id)) return false // Ya está en BD
+          const age = Date.now() - new Date(r.startTime).getTime()
+          return age < 15000 // Menos de 15 segundos
+        })
+        
+        // Combinar: BD + nuevas de BD + recientes locales
+        const mergedReservations = [...updatedReservations, ...newFromDB, ...recentLocal]
+        
+        // Solo actualizar si hay cambios reales
+        if (JSON.stringify(mergedReservations) !== JSON.stringify(currentReservations)) {
+          set({ activeReservations: mergedReservations })
+          console.log('✅ Reservas sincronizadas:', {
+            total: mergedReservations.length,
+            fromDB: activeReservationsFromDB.length,
+            recentLocal: recentLocal.length
+          })
         }
         
         // Cada 30 segundos, recargar también trabajadores
