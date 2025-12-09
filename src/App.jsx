@@ -34,12 +34,20 @@ function App() {
     const checkUser = async () => {
       const { data } = await mockAuth.getUser()
       if (data.user) {
+        console.log('👤 Usuario autenticado encontrado:', data.user.username)
+        console.log('🏢 Negocio:', data.user.business_name, '| Schema:', data.user.schema_name)
         setUser(data.user)
-        // Cargar datos del negocio si el usuario ya está autenticado
-        console.log('👤 Usuario encontrado, cargando datos...')
-        await useStore.getState().loadBusinessData()
-        // Activar sincronización automática
-        useStore.getState().startAutoSync()
+        // Solo cargar datos si hay schema_name válido
+        if (data.user.schema_name) {
+          console.log('📥 Cargando datos del negocio...')
+          await useStore.getState().loadBusinessData()
+          // Activar sincronización automática
+          useStore.getState().startAutoSync()
+        } else {
+          console.warn('⚠️ No hay schema_name, no se cargan datos')
+        }
+      } else {
+        console.log('👤 No hay usuario autenticado, mostrando login')
       }
     }
     checkUser()

@@ -414,22 +414,24 @@ export default function QRScannerModal({ isOpen, onClose }) {
             )}
           </div>
 
-          {/* Footer con botón de prueba */}
-          <div className="p-6 border-t bg-muted/30">
-            <Button
-              onClick={handleTestReservation}
-              variant="secondary"
-              className="w-full"
-              size="lg"
-              disabled={processing}
-            >
-              <Zap className="h-5 w-5 mr-2" />
-              Crear Reserva de Prueba (30 min)
-            </Button>
-            <p className="text-xs text-center text-muted-foreground mt-2">
-              Para probar sin código QR
-            </p>
-          </div>
+          {/* Footer con botón de prueba - SOLO para admins */}
+          {user?.user_metadata?.role === 'admin' && (
+            <div className="p-6 border-t bg-muted/30">
+              <Button
+                onClick={handleTestReservation}
+                variant="secondary"
+                className="w-full"
+                size="lg"
+                disabled={processing}
+              >
+                <Zap className="h-5 w-5 mr-2" />
+                Crear Reserva de Prueba (30 min)
+              </Button>
+              <p className="text-xs text-center text-muted-foreground mt-2">
+                Para probar sin código QR
+              </p>
+            </div>
+          )}
         </motion.div>
       </motion.div>
     </AnimatePresence>
