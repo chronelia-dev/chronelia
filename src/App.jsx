@@ -38,6 +38,8 @@ function App() {
         // Cargar datos del negocio si el usuario ya está autenticado
         console.log('👤 Usuario encontrado, cargando datos...')
         await useStore.getState().loadBusinessData()
+        // Activar sincronización automática
+        useStore.getState().startAutoSync()
       }
     }
     checkUser()

@@ -34,6 +34,9 @@ export default function Login() {
         console.log('📥 Cargando datos del negocio...')
         const loadResult = await useStore.getState().loadBusinessData()
         
+        // Activar sincronización automática
+        useStore.getState().startAutoSync()
+        
         if (loadResult.success) {
           toast.success('¡Bienvenido!', {
             description: `${data.user.full_name || data.user.username} - ${data.user.business_name}`,

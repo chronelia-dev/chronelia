@@ -287,6 +287,65 @@ const useStore = create((set, get) => ({
     })
     console.log('🗑️ Datos del negocio limpiados')
   },
+
+  // ============================================
+  // SINCRONIZACIÓN EN TIEMPO REAL (POLLING)
+  // ============================================
+  
+  /**
+   * Activar sincronización automática cada 10 segundos
+   */
+  startAutoSync: () => {
+    // Detener cualquier sync anterior
+    const state = get()
+    if (state.syncInterval) {
+      clearInterval(state.syncInterval)
+    }
+
+    // Sincronizar cada 10 segundos
+    const interval = setInterval(async () => {
+      console.log('🔄 Auto-sync: Actualizando datos...')
+      
+      try {
+        // Recargar reservas activas (las más importantes)
+        const activeReservations = await loadActiveReservations()
+        
+        // Solo actualizar si hay cambios
+        const currentReservations = get().activeReservations
+        if (JSON.stringify(activeReservations) !== JSON.stringify(currentReservations)) {
+          set({ activeReservations })
+          console.log('✅ Reservas activas actualizadas:', activeReservations.length)
+        }
+        
+        // Cada 30 segundos, recargar también trabajadores
+        if (Date.now() % 30000 < 10000) {
+          const workers = await loadWorkers()
+          set({ workers })
+          console.log('✅ Trabajadores actualizados:', workers.length)
+        }
+      } catch (error) {
+        console.error('❌ Error en auto-sync:', error)
+      }
+    }, 10000) // 10 segundos
+
+    set({ syncInterval: interval })
+    console.log('🔄 Auto-sync activado (cada 10 segundos)')
+  },
+
+  /**
+   * Detener sincronización automática
+   */
+  stopAutoSync: () => {
+    const state = get()
+    if (state.syncInterval) {
+      clearInterval(state.syncInterval)
+      set({ syncInterval: null })
+      console.log('⏸️ Auto-sync detenido')
+    }
+  },
+
+  // Intervalo de sincronización (interno)
+  syncInterval: null,
 }))
 
 export default useStore

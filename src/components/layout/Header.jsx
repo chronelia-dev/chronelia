@@ -12,6 +12,11 @@ export default function Header() {
   const businessName = user?.business_name || null
 
   const handleLogout = async () => {
+    // Detener sincronización automática
+    useStore.getState().stopAutoSync()
+    // Limpiar datos del negocio
+    useStore.getState().clearBusinessData()
+    // Cerrar sesión
     await mockAuth.signOut()
     useStore.setState({ user: null })
     navigate('/login')
