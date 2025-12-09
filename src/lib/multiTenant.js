@@ -116,17 +116,28 @@ export const saveReservationMultiTenant = async (reservation) => {
 
     console.log(`💾 Guardando reserva en schema ${schemaName}:`, reservationData)
 
-    // Usar schema.table para acceder a la tabla correcta
+    // Usar función RPC para guardar en el schema correcto
     const { data, error } = await supabase
-      .from(`${schemaName}.reservations`)
-      .upsert(reservationData)
-      .select()
-      .single()
+      .rpc('save_reservation', {
+        schema_name: schemaName,
+        reservation_id: reservationData.id,
+        p_customer_name: reservationData.customer_name,
+        p_customer_email: reservationData.customer_email,
+        p_qr_code: reservationData.qr_code,
+        p_total_duration: reservationData.total_duration,
+        p_actual_duration: reservationData.actual_duration,
+        p_start_time: reservationData.start_time,
+        p_end_time: reservationData.end_time,
+        p_status: reservationData.status,
+        p_worker_name: reservationData.worker_name,
+        p_group_size: reservationData.group_size,
+        p_extensions: reservationData.extensions
+      })
 
     if (error) throw error
     
-    console.log('✅ Reserva guardada exitosamente:', data)
-    return { data, error: null }
+    console.log('✅ Reserva guardada exitosamente, ID:', data)
+    return { data: { id: data, ...reservationData }, error: null }
   } catch (error) {
     console.error('❌ Error al guardar reserva:', error)
     return { data: null, error }
@@ -146,12 +157,9 @@ export const getActiveReservationsMultiTenant = async () => {
   try {
     console.log('📥 Obteniendo reservas activas del schema:', schemaName)
     
-    // Usar schema.table para acceder a la tabla correcta
+    // Usar función RPC para acceder al schema correcto
     const { data, error } = await supabase
-      .from(`${schemaName}.reservations`)
-      .select('*')
-      .eq('status', 'active')
-      .order('start_time', { ascending: false })
+      .rpc('get_active_reservations', { schema_name: schemaName })
 
     if (error) {
       console.error('❌ Error de Supabase:', error)
@@ -179,13 +187,12 @@ export const getReservationHistoryMultiTenant = async (limit = 50) => {
   try {
     console.log('📥 Obteniendo historial del schema:', schemaName)
     
-    // Usar schema.table para acceder a la tabla correcta
+    // Usar función RPC para acceder al schema correcto
     const { data, error } = await supabase
-      .from(`${schemaName}.reservations`)
-      .select('*')
-      .eq('status', 'completed')
-      .order('end_time', { ascending: false })
-      .limit(limit)
+      .rpc('get_reservation_history', { 
+        schema_name: schemaName,
+        limit_count: limit 
+      })
 
     if (error) {
       console.error('❌ Error de Supabase:', error)
@@ -213,11 +220,9 @@ export const getWorkersMultiTenant = async () => {
   try {
     console.log('📥 Obteniendo trabajadores del schema:', schemaName)
     
-    // Usar schema.table para acceder a la tabla correcta
+    // Usar función RPC para acceder al schema correcto
     const { data, error } = await supabase
-      .from(`${schemaName}.users`)
-      .select('*')
-      .order('full_name', { ascending: true })
+      .rpc('get_workers', { schema_name: schemaName })
 
     if (error) {
       console.error('❌ Error de Supabase:', error)
