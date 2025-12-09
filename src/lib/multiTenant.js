@@ -296,7 +296,7 @@ export const deleteWorkerMultiTenant = async (workerId) => {
     return { data, error: null }
   } catch (error) {
     console.error('Error al eliminar trabajador:', error)
-    return { data, null, error }
+    return { data: null, error }
   }
 }
 
