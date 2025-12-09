@@ -116,9 +116,9 @@ export const saveReservationMultiTenant = async (reservation) => {
 
     console.log(`💾 Guardando reserva en schema ${schemaName}:`, reservationData)
 
-    // Las consultas ya usan el schema correcto porque el search_path está establecido
+    // Usar schema.table para acceder a la tabla correcta
     const { data, error } = await supabase
-      .from('reservations')
+      .from(`${schemaName}.reservations`)
       .upsert(reservationData)
       .select()
       .single()
@@ -139,21 +139,29 @@ export const saveReservationMultiTenant = async (reservation) => {
 export const getActiveReservationsMultiTenant = async () => {
   const schemaName = getCurrentSchema()
   if (!schemaName) {
+    console.error('❌ No schema found para obtener reservas')
     return { data: [], error: { message: 'No schema found' } }
   }
 
   try {
-    // Las consultas ya filtran por schema automáticamente
+    console.log('📥 Obteniendo reservas activas del schema:', schemaName)
+    
+    // Usar schema.table para acceder a la tabla correcta
     const { data, error } = await supabase
-      .from('reservations')
+      .from(`${schemaName}.reservations`)
       .select('*')
       .eq('status', 'active')
       .order('start_time', { ascending: false })
 
-    if (error) throw error
+    if (error) {
+      console.error('❌ Error de Supabase:', error)
+      throw error
+    }
+    
+    console.log('✅ Reservas activas obtenidas:', data?.length || 0)
     return { data: data || [], error: null }
   } catch (error) {
-    console.error('Error al obtener reservas activas:', error)
+    console.error('❌ Error al obtener reservas activas:', error)
     return { data: [], error }
   }
 }
@@ -164,21 +172,30 @@ export const getActiveReservationsMultiTenant = async () => {
 export const getReservationHistoryMultiTenant = async (limit = 50) => {
   const schemaName = getCurrentSchema()
   if (!schemaName) {
+    console.error('❌ No schema found para obtener historial')
     return { data: [], error: { message: 'No schema found' } }
   }
 
   try {
+    console.log('📥 Obteniendo historial del schema:', schemaName)
+    
+    // Usar schema.table para acceder a la tabla correcta
     const { data, error } = await supabase
-      .from('reservations')
+      .from(`${schemaName}.reservations`)
       .select('*')
       .eq('status', 'completed')
       .order('end_time', { ascending: false })
       .limit(limit)
 
-    if (error) throw error
+    if (error) {
+      console.error('❌ Error de Supabase:', error)
+      throw error
+    }
+    
+    console.log('✅ Historial obtenido:', data?.length || 0)
     return { data: data || [], error: null }
   } catch (error) {
-    console.error('Error al obtener historial:', error)
+    console.error('❌ Error al obtener historial:', error)
     return { data: [], error }
   }
 }
@@ -189,20 +206,28 @@ export const getReservationHistoryMultiTenant = async (limit = 50) => {
 export const getWorkersMultiTenant = async () => {
   const schemaName = getCurrentSchema()
   if (!schemaName) {
+    console.error('❌ No schema found para obtener trabajadores')
     return { data: [], error: { message: 'No schema found' } }
   }
 
   try {
+    console.log('📥 Obteniendo trabajadores del schema:', schemaName)
+    
+    // Usar schema.table para acceder a la tabla correcta
     const { data, error } = await supabase
-      .from('users')
+      .from(`${schemaName}.users`)
       .select('*')
-      .eq('role', 'worker')
       .order('full_name', { ascending: true })
 
-    if (error) throw error
+    if (error) {
+      console.error('❌ Error de Supabase:', error)
+      throw error
+    }
+    
+    console.log('✅ Trabajadores obtenidos:', data?.length || 0)
     return { data: data || [], error: null }
   } catch (error) {
-    console.error('Error al obtener trabajadores:', error)
+    console.error('❌ Error al obtener trabajadores:', error)
     return { data: [], error }
   }
 }
@@ -229,8 +254,9 @@ export const saveWorkerMultiTenant = async (worker) => {
 
     console.log(`💾 Guardando trabajador en schema ${schemaName}:`, workerData)
 
-    const { data, error } = await supabase
-      .from('users')
+    // Usar schema.table para acceder a la tabla correcta
+    const { data, error} = await supabase
+      .from(`${schemaName}.users`)
       .upsert(workerData)
       .select()
       .single()
@@ -255,8 +281,9 @@ export const deleteWorkerMultiTenant = async (workerId) => {
   }
 
   try {
+    // Usar schema.table para acceder a la tabla correcta
     const { data, error } = await supabase
-      .from('users')
+      .from(`${schemaName}.users`)
       .delete()
       .eq('id', workerId)
 
@@ -264,7 +291,7 @@ export const deleteWorkerMultiTenant = async (workerId) => {
     return { data, error: null }
   } catch (error) {
     console.error('Error al eliminar trabajador:', error)
-    return { data: null, error }
+    return { data, null, error }
   }
 }
 
@@ -302,8 +329,9 @@ export const saveDailyStatsMultiTenant = async (stats) => {
   }
 
   try {
+    // Usar schema.table para acceder a la tabla correcta
     const { data, error } = await supabase
-      .from('daily_stats')
+      .from(`${schemaName}.daily_stats`)
       .upsert(stats)
       .select()
       .single()
