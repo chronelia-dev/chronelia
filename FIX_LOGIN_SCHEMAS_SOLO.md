@@ -218,3 +218,6 @@ git push origin main
 
 **¿Ya ejecutaste los scripts SQL en Supabase?** Si no, ese es el paso que falta. Te guío paso a paso si necesitas ayuda. 🚀
 
+
+
+

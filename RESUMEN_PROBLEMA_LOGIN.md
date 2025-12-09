@@ -216,3 +216,5 @@ parametros: p_username text, p_password text
 
 Si después de esto sigue sin funcionar, ejecuta `DIAGNOSTICO_LOGIN.sql` y comparte los resultados completos para un diagnóstico más profundo.
 
+
+

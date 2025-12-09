@@ -286,3 +286,5 @@ Luego abre `http://localhost:5173` y prueba el login y el chat de IA.
 
 **¡Todo está listo para funcionar!** 🚀
 
+
+

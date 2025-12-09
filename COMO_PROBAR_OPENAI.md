@@ -350,3 +350,4 @@ He mejorado el código para prevenir el error:
 **Propósito:** Diagnosticar problemas de OpenAI en Chronelia
 
 
+

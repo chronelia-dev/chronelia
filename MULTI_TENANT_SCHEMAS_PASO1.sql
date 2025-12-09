@@ -244,3 +244,6 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 SELECT '✅ Tablas y funciones creadas correctamente' as status;
 
+
+
+

@@ -323,3 +323,5 @@ Si después de seguir todos los pasos sigue sin funcionar:
 **Versión:** 1.0  
 **Estado:** Probado y funcional ✅
 
+
+

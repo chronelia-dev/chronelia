@@ -1,0 +1,259 @@
+==========================================
+   COMANDOS DE COMPILACIÓN APK
+   Copiar y Pegar Según tu Sistema Operativo
+==========================================
+
+═══════════════════════════════════════════
+ WINDOWS (PowerShell)
+═══════════════════════════════════════════
+
+# 1. VERIFICAR CONFIGURACIÓN
+.\verificar-compilacion.ps1
+
+# 2. INSTALAR DEPENDENCIAS (si es necesario)
+npm.cmd install
+
+# 3. COMPILAR PROYECTO WEB
+npm.cmd run build
+
+# 4. COPIAR ARCHIVOS A ANDROID
+npm.cmd exec cap copy android
+
+# 5. NAVEGAR A CARPETA ANDROID
+cd android
+
+# 6. LIMPIAR COMPILACIÓN ANTERIOR
+.\gradlew clean
+
+# 7. COMPILAR APK DEBUG
+.\gradlew assembleDebug --rerun-tasks
+
+# 8. VERIFICAR APK GENERADA
+dir app\build\outputs\apk\debug\
+
+# 9. VOLVER A LA RAÍZ (opcional)
+cd ..
+
+
+═══════════════════════════════════════════
+ MAC / LINUX (Terminal/Bash)
+═══════════════════════════════════════════
+
+# 1. DAR PERMISOS AL VERIFICADOR
+chmod +x verificar-compilacion.sh
+
+# 2. VERIFICAR CONFIGURACIÓN
+./verificar-compilacion.sh
+
+# 3. INSTALAR DEPENDENCIAS (si es necesario)
+npm install
+
+# 4. COMPILAR PROYECTO WEB
+npm run build
+
+# 5. COPIAR ARCHIVOS A ANDROID
+npm exec cap copy android
+
+# 6. NAVEGAR A CARPETA ANDROID
+cd android
+
+# 7. LIMPIAR COMPILACIÓN ANTERIOR
+./gradlew clean
+
+# 8. COMPILAR APK DEBUG
+./gradlew assembleDebug --rerun-tasks
+
+# 9. VERIFICAR APK GENERADA
+ls -lh app/build/outputs/apk/debug/
+
+# 10. VOLVER A LA RAÍZ (opcional)
+cd ..
+
+
+═══════════════════════════════════════════
+ COMANDOS DE SOLUCIÓN DE PROBLEMAS
+═══════════════════════════════════════════
+
+# Verificar versión de Java
+java -version
+# Debe mostrar: version "17.x.x"
+
+# Verificar versión de Node
+node --version
+# Debe mostrar: v16.x.x o superior
+
+# Verificar versión de npm
+npm --version
+# Debe mostrar: 8.x.x o superior
+
+# Detener Gradle daemon
+./gradlew --stop
+# O en Windows:
+.\gradlew --stop
+
+# Ver información detallada de compilación
+./gradlew assembleDebug --info
+# O en Windows:
+.\gradlew assembleDebug --info
+
+# Ver TODOS los detalles (debugging)
+./gradlew assembleDebug --debug
+# O en Windows:
+.\gradlew assembleDebug --debug
+
+# Limpiar caché de Gradle (NUCLEAR)
+# Windows:
+Remove-Item -Recurse -Force $env:USERPROFILE\.gradle\caches\
+# Mac/Linux:
+rm -rf ~/.gradle/caches/
+
+# Reinstalar node_modules desde cero
+# Windows:
+Remove-Item -Recurse -Force node_modules, package-lock.json
+npm.cmd install
+# Mac/Linux:
+rm -rf node_modules package-lock.json
+npm install
+
+# Regenerar plataforma Android desde cero
+npx cap rm android
+npx cap add android
+# Luego aplicar todas las configuraciones de nuevo
+
+
+═══════════════════════════════════════════
+ SECUENCIA COMPLETA (TODO EN UNO)
+═══════════════════════════════════════════
+
+WINDOWS (PowerShell):
+--------------------
+npm.cmd run build; npm.cmd exec cap copy android; cd android; .\gradlew clean; .\gradlew assembleDebug --rerun-tasks; cd ..
+
+MAC/LINUX (Bash):
+-----------------
+npm run build && npm exec cap copy android && cd android && ./gradlew clean && ./gradlew assembleDebug --rerun-tasks && cd ..
+
+
+═══════════════════════════════════════════
+ ARCHIVOS QUE DEBES MODIFICAR
+═══════════════════════════════════════════
+
+1. android/gradle/wrapper/gradle-wrapper.properties
+   → distributionUrl=...gradle-8.9-bin.zip
+
+2. android/local.properties
+   → sdk.dir=[RUTA_DE_TU_SDK]
+
+3. android/capacitor-cordova-android-plugins/build.gradle
+   → JavaVersion.VERSION_17
+
+4. android/app/capacitor.build.gradle
+   → JavaVersion.VERSION_17
+
+5. node_modules/@capacitor/android/capacitor/build.gradle
+   → JavaVersion.VERSION_17
+
+6. node_modules/@capacitor/camera/android/build.gradle (si usas cámara)
+   → JavaVersion.VERSION_17
+
+
+═══════════════════════════════════════════
+ RUTAS DE ANDROID SDK (TÍPICAS)
+═══════════════════════════════════════════
+
+Windows:
+--------
+C:\Users\[TuUsuario]\AppData\Local\Android\Sdk
+
+Mac:
+----
+/Users/[TuUsuario]/Library/Android/sdk
+
+Linux:
+------
+/home/[TuUsuario]/Android/Sdk
+/home/[TuUsuario]/Android/sdk
+
+
+═══════════════════════════════════════════
+ UBICACIÓN DE LA APK GENERADA
+═══════════════════════════════════════════
+
+Ruta completa:
+android/app/build/outputs/apk/debug/
+
+Archivo típico:
+- app-debug.apk
+- [NombreApp]-v[version]-[fecha]-debug.apk
+
+
+═══════════════════════════════════════════
+ CHECKLIST ANTES DE COMPILAR
+═══════════════════════════════════════════
+
+[ ] Java 17 instalado (java -version)
+[ ] Gradle 8.9 en gradle-wrapper.properties
+[ ] local.properties configurado con SDK path
+[ ] VERSION_17 en todos los build.gradle
+[ ] node_modules instalado
+[ ] npm run build ejecutado sin errores
+[ ] cap copy android ejecutado
+[ ] gradlew clean ejecutado
+
+
+═══════════════════════════════════════════
+ INSTALACIÓN DE JAVA 17
+═══════════════════════════════════════════
+
+Descargar desde:
+https://adoptium.net/temurin/releases/?version=17
+
+O para Windows con Chocolatey:
+choco install temurin17
+
+O para Mac con Homebrew:
+brew install openjdk@17
+
+O para Linux (Ubuntu/Debian):
+sudo apt install openjdk-17-jdk
+
+
+═══════════════════════════════════════════
+ VARIABLES DE ENTORNO (si es necesario)
+═══════════════════════════════════════════
+
+Windows (PowerShell):
+--------------------
+$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-17.x.x"
+$env:ANDROID_HOME = "C:\Users\[TuUsuario]\AppData\Local\Android\Sdk"
+
+Mac/Linux (Bash):
+-----------------
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
+export ANDROID_HOME=~/Library/Android/sdk
+
+Agregar a PATH:
+export PATH=$JAVA_HOME/bin:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$PATH
+
+
+═══════════════════════════════════════════
+ SOPORTE
+═══════════════════════════════════════════
+
+Si el script verificador muestra errores:
+1. Lee GUIA_COMPILACION_APK.md
+2. Revisa la sección específica del error
+3. Aplica la corrección sugerida
+4. Vuelve a ejecutar el verificador
+
+Si todo falla:
+1. Borra node_modules y reinstala
+2. Regenera la plataforma Android (cap rm/add)
+3. Aplica TODAS las configuraciones de nuevo
+4. Intenta compilar
+
+==========================================
+Última actualización: Diciembre 2025
+Basado en: Proyecto Match and Fight
+==========================================
+

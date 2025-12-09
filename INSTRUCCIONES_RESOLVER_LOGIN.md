@@ -429,3 +429,5 @@ Antes de decir que no funciona, verifica:
 
 **Empieza por el [Diagnóstico Rápido](#diagnóstico-rápido-30-segundos) y sigue los pasos según los resultados.** 🚀
 
+
+

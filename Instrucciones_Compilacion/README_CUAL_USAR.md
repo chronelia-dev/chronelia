@@ -268,3 +268,6 @@ Independientemente del script que uses:
 **Versión:** 3.0 - Escáner QR  
 **Estado:** ✅ Verificado y funcional
 
+
+
+

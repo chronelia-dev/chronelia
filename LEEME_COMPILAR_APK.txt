@@ -1,0 +1,97 @@
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║   📱 CÓMO COMPILAR LA APK DE CHRONELIA                          ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+
+
+🎯 INICIO RÁPIDO (3 PASOS)
+═══════════════════════════════
+
+  1. Doble clic en: compilar-apk-limpio.bat
+  
+  2. Espera a que abra Android Studio
+  
+  3. En Android Studio:
+     Build → Build Bundle(s) / APK(s) → Build APK(s)
+  
+  ✅ ¡Listo! Tu APK estará en:
+     android\app\build\outputs\apk\debug\app-debug.apk
+
+
+📚 DOCUMENTACIÓN COMPLETA
+═════════════════════════
+
+  Toda la documentación está organizada en:
+  
+  📁 Instrucciones_Compilacion\
+     ├─ README_CUAL_USAR.md ⭐ (¿Qué script usar?)
+     ├─ PASOS_EN_ANDROID_STUDIO.txt (Instrucciones AS)
+     ├─ VERIFICACION_RAPIDA.md (Checklist)
+     └─ SOLUCION_ESCANER_QR_DEFINITIVA.md (Todo sobre QR)
+
+
+🔧 SCRIPTS DISPONIBLES
+══════════════════════
+
+  ✨ compilar-apk-limpio.bat
+     → Para primera vez o cambios importantes
+     → Limpia todo y compila desde cero
+     → RECOMENDADO para escáner QR
+
+  🛠️ compilar-apk.bat
+     → Para compilaciones rutinarias
+     → Menú con 5 opciones
+     → Más rápido, usa caché
+
+
+❓ ¿CUÁL USAR?
+══════════════
+
+  🆕 Primera vez compilando
+      → compilar-apk-limpio.bat
+  
+  🔍 Cambios en escáner QR
+      → compilar-apk-limpio.bat
+  
+  🎨 Cambios en UI/estilos
+      → compilar-apk.bat (Opción 1)
+  
+  🐛 APK no funciona
+      → compilar-apk-limpio.bat
+
+
+📖 GUÍA DETALLADA
+═════════════════
+
+  Para instrucciones paso a paso con capturas:
+  → COMPILAR_APK_PASO_A_PASO.md
+
+
+🆘 SI TIENES PROBLEMAS
+══════════════════════
+
+  1. Lee: Instrucciones_Compilacion\README_CUAL_USAR.md
+  2. Usa: compilar-apk-limpio.bat
+  3. Verifica: Java 17 instalado
+  4. Si persiste: COMPILAR_APK_PASO_A_PASO.md
+
+
+✅ REQUISITOS
+═════════════
+
+  - ✓ Node.js instalado
+  - ✓ Java JDK 17+
+  - ✓ Android Studio
+  - ✓ Conexión a internet
+
+
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║   🚀 ¡Empieza con compilar-apk-limpio.bat!                      ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+
+
+
+

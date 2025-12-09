@@ -319,3 +319,5 @@ SELECT * FROM login_user('admin', 'chronelia2025');
 
 **Ejecuta `FIX_LOGIN_PARAMETROS.sql` y el problema estará resuelto.** 🎉
 
+
+

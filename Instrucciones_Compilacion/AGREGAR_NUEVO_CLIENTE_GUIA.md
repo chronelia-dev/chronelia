@@ -341,3 +341,6 @@ NOTAS:
 
 ¿Quieres que también te muestre cómo modificar la app para que use esta arquitectura con schemas? 🚀
 
+
+
+

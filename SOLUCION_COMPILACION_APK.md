@@ -86,3 +86,9 @@ npx cap open android
 
 **Recomendación:** Usa Android Studio para esta compilación.
 
+
+
+
+
+
+

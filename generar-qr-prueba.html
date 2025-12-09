@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador QR - Chronelia</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .qr-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        #qrcode {
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .info p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .info strong {
+            color: #333;
+        }
+        .json-code {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .alert {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎫 Código QR de Prueba - Chronelia</h1>
+        
+        <div class="info">
+            <h3>📋 Información de la Reserva</h3>
+            <p><strong>Cliente:</strong> Pepe Gonzales</p>
+            <p><strong>Email:</strong> pepe.gonzales@email.com</p>
+            <p><strong>Personas:</strong> 5</p>
+            <p><strong>Duración:</strong> 4 horas (240 minutos)</p>
+            <p><strong>Código:</strong> PEPE-5PAX-4H-001</p>
+        </div>
+
+        <div class="qr-container">
+            <div id="qrcode"></div>
+        </div>
+
+        <div class="buttons">
+            <button onclick="downloadQR()">💾 Descargar QR</button>
+            <button onclick="printQR()">🖨️ Imprimir QR</button>
+            <button onclick="copyJSON()">📋 Copiar JSON</button>
+        </div>
+
+        <div class="alert">
+            <strong>ℹ️ Cómo usar:</strong> Escanea este código QR con la app Chronelia para activar la reserva de Pepe Gonzales.
+        </div>
+
+        <div class="info">
+            <h3>📝 JSON del QR</h3>
+            <pre class="json-code" id="jsonData"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Datos de la reserva
+        const reservationData = {
+            "clientName": "Pepe Gonzales",
+            "clientEmail": "pepe.gonzales@email.com",
+            "duration": 240,
+            "groupSize": 5,
+            "code": "PEPE-5PAX-4H-001"
+        };
+
+        // Mostrar JSON
+        document.getElementById('jsonData').textContent = JSON.stringify(reservationData, null, 2);
+
+        // Generar QR
+        const qrcode = new QRCode(document.getElementById("qrcode"), {
+            text: JSON.stringify(reservationData),
+            width: 300,
+            height: 300,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        // Función para descargar el QR
+        function downloadQR() {
+            const canvas = document.querySelector('#qrcode canvas');
+            const url = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'qr-pepe-gonzales-5pax-4h.png';
+            link.href = url;
+            link.click();
+        }
+
+        // Función para imprimir el QR
+        function printQR() {
+            window.print();
+        }
+
+        // Función para copiar el JSON
+        function copyJSON() {
+            const json = JSON.stringify(reservationData);
+            navigator.clipboard.writeText(json).then(() => {
+                alert('✅ JSON copiado al portapapeles!\n\nPuedes pegarlo en la entrada manual de la app.');
+            });
+        }
+    </script>
+
+    <style media="print">
+        body {
+            background: white;
+        }
+        .buttons, .alert, .info h3, .json-code {
+            display: none;
+        }
+        .container {
+            box-shadow: none;
+        }
+        .qr-container {
+            page-break-inside: avoid;
+        }
+    </style>
+</body>
+</html>
+
+
+
+
+
+
+

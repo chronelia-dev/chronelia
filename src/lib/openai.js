@@ -2,6 +2,8 @@
 // chronelia. - INTEGRACIÓN CON OPENAI
 // ============================================
 
+import { VERCEL_URL } from '@/config/vercel'
+
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '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'
 const OPENAI_MODEL = import.meta.env.VITE_OPENAI_MODEL || 'gpt-4o-mini'
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
@@ -141,18 +143,31 @@ Mientras tanto, puedo responder preguntas básicas usando el sistema local.`
     ]
 
     // Determinar si estamos en producción o desarrollo
-    const isProduction = window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')
+    const isCapacitor = window.location.protocol === 'capacitor:' || window.location.protocol === 'ionic:'
     
-    // Usar API serverless en producción, llamada directa en desarrollo
-    const apiUrl = isProduction ? '/api/chat' : OPENAI_API_URL
-    const headers = isProduction 
-      ? { 'Content-Type': 'application/json' }
-      : {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`
-        }
-
-    console.log('📡 Usando API:', isProduction ? 'Serverless (/api/chat)' : 'Directa (OpenAI)')
+    // Determinar qué API usar
+    let apiUrl, headers
+    
+    if (isLocalhost) {
+      // Desarrollo local: llamada directa a OpenAI
+      apiUrl = OPENAI_API_URL
+      headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`
+      }
+      console.log('📡 Usando API: Directa (OpenAI) - Desarrollo local')
+    } else if (isCapacitor) {
+      // App nativa: usar URL completa de Vercel desde config
+      apiUrl = `${VERCEL_URL}/api/chat`
+      headers = { 'Content-Type': 'application/json' }
+      console.log('📡 Usando API: Serverless Vercel (App Nativa) -', apiUrl)
+    } else {
+      // Web en producción: ruta relativa
+      apiUrl = '/api/chat'
+      headers = { 'Content-Type': 'application/json' }
+      console.log('📡 Usando API: Serverless (/api/chat) - Web Producción')
+    }
 
     // Llamar a la API (serverless en producción, directa en desarrollo)
     const response = await fetch(apiUrl, {

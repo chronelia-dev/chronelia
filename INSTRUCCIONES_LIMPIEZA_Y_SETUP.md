@@ -319,3 +319,5 @@ SELECT create_business_user(
 
 **¡Empieza ejecutando PASO_1_LIMPIEZA_TOTAL.sql!** 🚀
 
+
+

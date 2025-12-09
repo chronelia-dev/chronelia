@@ -308,3 +308,5 @@ Luego prueba el Chat de IA en el Dashboard. ✨
 **Modelo:** gpt-4o-mini  
 **Estado:** Listo para usar 🚀
 
+
+

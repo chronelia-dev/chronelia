@@ -21,3 +21,9 @@ echo.
 echo Se vera en chronelia.online en 2-3 minutos
 pause
 
+
+
+
+
+
+
