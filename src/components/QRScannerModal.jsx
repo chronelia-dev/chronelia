@@ -38,11 +38,23 @@ export default function QRScannerModal({ isOpen, onClose }) {
       if (isNativeApp) {
         startNativeScanner()
       } else {
-        // En web, dar tiempo a que el modal se monte completamente
-        // antes de intentar acceder al videoRef
-        setTimeout(() => {
-          startCamera()
-        }, 100)
+        // En web, necesitamos esperar a que el videoRef esté disponible
+        // debido a las animaciones de Framer Motion
+        console.log('📱 Modal abierto, esperando que videoRef esté disponible...')
+        
+        // Intentar iniciar la cámara cuando el videoRef esté listo
+        const checkVideoRef = () => {
+          if (videoRef.current) {
+            console.log('✅ videoRef disponible, iniciando cámara...')
+            startCamera()
+          } else {
+            console.log('⏳ videoRef aún no disponible, reintentando...')
+            setTimeout(checkVideoRef, 50)
+          }
+        }
+        
+        // Pequeño delay inicial para dar tiempo a AnimatePresence
+        setTimeout(checkVideoRef, 150)
       }
     } else {
       stopCamera()
@@ -133,27 +145,7 @@ export default function QRScannerModal({ isOpen, onClose }) {
 
   const startCamera = async () => {
     console.log('🎥 === INICIANDO CÁMARA ===')
-    
-    // Verificar que el videoRef existe (crítico)
-    if (!videoRef.current) {
-      console.error('❌ CRÍTICO: videoRef.current es null')
-      console.log('⏳ Esperando 200ms más para que el DOM se monte...')
-      
-      // Reintentar después de un delay
-      setTimeout(() => {
-        if (videoRef.current) {
-          console.log('✅ videoRef ahora disponible, reintentando...')
-          startCamera()
-        } else {
-          console.error('❌ videoRef sigue siendo null después del delay')
-          setCameraError('Error al inicializar el video. Por favor, cierra y vuelve a abrir el escáner.')
-          toast.error('Error al inicializar', {
-            description: 'Intenta cerrar y reabrir el escáner'
-          })
-        }
-      }, 200)
-      return
-    }
+    console.log('✅ videoRef.current confirmado disponible')
     
     try {
       // Limpiar estados
@@ -161,10 +153,9 @@ export default function QRScannerModal({ isOpen, onClose }) {
       setVideoReady(false)
       setScanning(false)
       
-      console.log('📷 Paso 1: Solicitando getUserMedia...')
-      console.log('✅ videoRef.current existe:', !!videoRef.current)
+      console.log('📷 Solicitando getUserMedia...')
       
-      // Configuración simplificada
+      // Configuración de la cámara
       const constraints = {
         video: {
           width: { ideal: 1280 },
@@ -176,24 +167,28 @@ export default function QRScannerModal({ isOpen, onClose }) {
       
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
       console.log('✅ Stream obtenido exitosamente')
-      console.log('📹 Tracks:', stream.getVideoTracks().length)
+      console.log('📹 Tracks de video:', stream.getVideoTracks().length)
+      
+      // Verificación final antes de asignar
+      if (!videoRef.current) {
+        console.error('❌ videoRef se perdió durante getUserMedia')
+        throw new Error('Elemento de video no disponible')
+      }
       
       // Guardar stream
       streamRef.current = stream
       
-      // Verificar de nuevo (por si acaso)
-      if (!videoRef.current) {
-        console.error('❌ videoRef.current se volvió null')
-        setCameraError('Elemento de video perdido')
-        return
-      }
-      
       console.log('📺 Asignando stream al elemento video...')
       videoRef.current.srcObject = stream
       
+      // Configurar atributos del video
+      videoRef.current.autoplay = true
+      videoRef.current.playsInline = true
+      videoRef.current.muted = true
+      
       // Esperar a que el video esté listo
       videoRef.current.onloadedmetadata = async () => {
-        console.log('✅ Metadata cargada')
+        console.log('✅ Metadata del video cargada')
         
         if (videoRef.current) {
           console.log('📐 Dimensiones:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight)
@@ -201,19 +196,20 @@ export default function QRScannerModal({ isOpen, onClose }) {
           try {
             // Reproducir video
             await videoRef.current.play()
-            console.log('▶️ Video reproduciendo')
+            console.log('▶️ Video reproduciendo correctamente')
             
             // Marcar como listo
             setVideoReady(true)
             setScanning(true)
             
-            // Pequeño delay antes de iniciar escaneo
+            // Iniciar escaneo después de un pequeño delay
             setTimeout(() => {
+              console.log('🔍 Iniciando loop de escaneo QR...')
               startScanning()
             }, 500)
             
           } catch (playError) {
-            console.error('❌ Error al reproducir:', playError)
+            console.error('❌ Error al reproducir video:', playError)
             setCameraError('No se pudo reproducir el video')
             toast.error('Error al reproducir video')
           }
@@ -223,12 +219,12 @@ export default function QRScannerModal({ isOpen, onClose }) {
       // Manejar errores del video
       videoRef.current.onerror = (err) => {
         console.error('❌ Error en elemento video:', err)
-        setCameraError('Error en el video')
+        setCameraError('Error en el elemento de video')
       }
       
     } catch (error) {
       console.error('❌ Error al acceder a la cámara:', error)
-      console.error('Nombre del error:', error.name)
+      console.error('Tipo:', error.name)
       console.error('Mensaje:', error.message)
       
       setCameraError(error.message)
