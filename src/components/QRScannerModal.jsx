@@ -32,13 +32,17 @@ export default function QRScannerModal({ isOpen, onClose }) {
     if (isOpen) {
       setProcessing(false)
       setCameraError(null)
+      setVideoReady(false)
       
       // Si es app nativa, usar ML Kit directamente (sin mostrar modal)
       if (isNativeApp) {
         startNativeScanner()
       } else {
-        // En web, mostrar modal con cámara
-        startCamera()
+        // En web, dar tiempo a que el modal se monte completamente
+        // antes de intentar acceder al videoRef
+        setTimeout(() => {
+          startCamera()
+        }, 100)
       }
     } else {
       stopCamera()
@@ -130,6 +134,27 @@ export default function QRScannerModal({ isOpen, onClose }) {
   const startCamera = async () => {
     console.log('🎥 === INICIANDO CÁMARA ===')
     
+    // Verificar que el videoRef existe (crítico)
+    if (!videoRef.current) {
+      console.error('❌ CRÍTICO: videoRef.current es null')
+      console.log('⏳ Esperando 200ms más para que el DOM se monte...')
+      
+      // Reintentar después de un delay
+      setTimeout(() => {
+        if (videoRef.current) {
+          console.log('✅ videoRef ahora disponible, reintentando...')
+          startCamera()
+        } else {
+          console.error('❌ videoRef sigue siendo null después del delay')
+          setCameraError('Error al inicializar el video. Por favor, cierra y vuelve a abrir el escáner.')
+          toast.error('Error al inicializar', {
+            description: 'Intenta cerrar y reabrir el escáner'
+          })
+        }
+      }, 200)
+      return
+    }
+    
     try {
       // Limpiar estados
       setCameraError(null)
@@ -137,6 +162,7 @@ export default function QRScannerModal({ isOpen, onClose }) {
       setScanning(false)
       
       console.log('📷 Paso 1: Solicitando getUserMedia...')
+      console.log('✅ videoRef.current existe:', !!videoRef.current)
       
       // Configuración simplificada
       const constraints = {
@@ -155,14 +181,21 @@ export default function QRScannerModal({ isOpen, onClose }) {
       // Guardar stream
       streamRef.current = stream
       
-      // Asignar al video
-      if (videoRef.current) {
-        console.log('📺 Asignando stream al elemento video...')
-        videoRef.current.srcObject = stream
+      // Verificar de nuevo (por si acaso)
+      if (!videoRef.current) {
+        console.error('❌ videoRef.current se volvió null')
+        setCameraError('Elemento de video perdido')
+        return
+      }
+      
+      console.log('📺 Asignando stream al elemento video...')
+      videoRef.current.srcObject = stream
+      
+      // Esperar a que el video esté listo
+      videoRef.current.onloadedmetadata = async () => {
+        console.log('✅ Metadata cargada')
         
-        // Esperar a que el video esté listo
-        videoRef.current.onloadedmetadata = async () => {
-          console.log('✅ Metadata cargada')
+        if (videoRef.current) {
           console.log('📐 Dimensiones:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight)
           
           try {
@@ -185,16 +218,12 @@ export default function QRScannerModal({ isOpen, onClose }) {
             toast.error('Error al reproducir video')
           }
         }
+      }
 
-        // Manejar errores del video
-        videoRef.current.onerror = (err) => {
-          console.error('❌ Error en elemento video:', err)
-          setCameraError('Error en el video')
-        }
-        
-      } else {
-        console.error('❌ videoRef.current es null')
-        setCameraError('Elemento de video no encontrado')
+      // Manejar errores del video
+      videoRef.current.onerror = (err) => {
+        console.error('❌ Error en elemento video:', err)
+        setCameraError('Error en el video')
       }
       
     } catch (error) {
