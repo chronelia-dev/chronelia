@@ -14,6 +14,7 @@ export default function QRScannerModal({ isOpen, onClose }) {
   const [processing, setProcessing] = useState(false)
   const [cameraError, setCameraError] = useState(null)
   const [isNativeApp, setIsNativeApp] = useState(false)
+  const [videoReady, setVideoReady] = useState(false)
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
   const streamRef = useRef(null)
@@ -127,31 +128,94 @@ export default function QRScannerModal({ isOpen, onClose }) {
   }
 
   const startCamera = async () => {
+    console.log('🎥 === INICIANDO CÁMARA ===')
+    
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      })
+      // Limpiar estados
+      setCameraError(null)
+      setVideoReady(false)
+      setScanning(false)
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        streamRef.current = stream
-        setScanning(true)
-        
-        // Iniciar escaneo cuando el video esté listo
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current.play()
-          startScanning()
-        }
+      console.log('📷 Paso 1: Solicitando getUserMedia...')
+      
+      // Configuración simplificada
+      const constraints = {
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: { ideal: 'environment' }
+        },
+        audio: false
       }
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints)
+      console.log('✅ Stream obtenido exitosamente')
+      console.log('📹 Tracks:', stream.getVideoTracks().length)
+      
+      // Guardar stream
+      streamRef.current = stream
+      
+      // Asignar al video
+      if (videoRef.current) {
+        console.log('📺 Asignando stream al elemento video...')
+        videoRef.current.srcObject = stream
+        
+        // Esperar a que el video esté listo
+        videoRef.current.onloadedmetadata = async () => {
+          console.log('✅ Metadata cargada')
+          console.log('📐 Dimensiones:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight)
+          
+          try {
+            // Reproducir video
+            await videoRef.current.play()
+            console.log('▶️ Video reproduciendo')
+            
+            // Marcar como listo
+            setVideoReady(true)
+            setScanning(true)
+            
+            // Pequeño delay antes de iniciar escaneo
+            setTimeout(() => {
+              startScanning()
+            }, 500)
+            
+          } catch (playError) {
+            console.error('❌ Error al reproducir:', playError)
+            setCameraError('No se pudo reproducir el video')
+            toast.error('Error al reproducir video')
+          }
+        }
+
+        // Manejar errores del video
+        videoRef.current.onerror = (err) => {
+          console.error('❌ Error en elemento video:', err)
+          setCameraError('Error en el video')
+        }
+        
+      } else {
+        console.error('❌ videoRef.current es null')
+        setCameraError('Elemento de video no encontrado')
+      }
+      
     } catch (error) {
-      console.error('Error al acceder a la cámara:', error)
+      console.error('❌ Error al acceder a la cámara:', error)
+      console.error('Nombre del error:', error.name)
+      console.error('Mensaje:', error.message)
+      
       setCameraError(error.message)
+      
+      let errorMessage = 'Por favor, permite el acceso a la cámara'
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage = 'Permiso de cámara denegado. Permite el acceso en la configuración del navegador.'
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = 'No se encontró ninguna cámara disponible'
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = 'La cámara está siendo usada por otra aplicación'
+      }
+      
       toast.error('Error al acceder a la cámara', {
-        description: 'Por favor, permite el acceso a la cámara en tu navegador',
+        description: errorMessage,
       })
     }
   }
@@ -324,7 +388,7 @@ export default function QRScannerModal({ isOpen, onClose }) {
               <div className="text-center py-12">
                 <Camera className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                 <p className="text-muted-foreground mb-2">Error al acceder a la cámara</p>
-                <p className="text-xs text-muted-foreground">{cameraError}</p>
+                <p className="text-xs text-muted-foreground mb-4">{cameraError}</p>
                 <Button 
                   onClick={isNativeApp ? startNativeScanner : startCamera}
                   className="mt-4"
@@ -333,7 +397,7 @@ export default function QRScannerModal({ isOpen, onClose }) {
                   Reintentar
                 </Button>
               </div>
-            ) : scanning ? (
+            ) : videoReady ? (
               <div className="relative">
                 <motion.div
                   initial={{ opacity: 0 }}
