@@ -1,9 +1,7 @@
-import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { QrCode, LayoutDashboard, BarChart3, History, Settings } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import QRScannerModal from '@/components/QRScannerModal'
 
 const navItems = [
   {
@@ -29,7 +27,7 @@ const navItems = [
 ]
 
 export default function BottomNav() {
-  const [scannerOpen, setScannerOpen] = useState(false)
+  const navigate = useNavigate()
 
   return (
     <>
@@ -118,9 +116,9 @@ export default function BottomNav() {
             ))}
           </div>
 
-          {/* Botón central flotante de Escanear */}
+          {/* Botón central flotante de Escanear - Navega directamente a /scan */}
           <button
-            onClick={() => setScannerOpen(true)}
+            onClick={() => navigate('/scan')}
             className="absolute left-1/2 -translate-x-1/2 -top-6 flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 text-white shadow-2xl active:scale-95 transition-transform"
             style={{ transformOrigin: 'center center' }}
           >
@@ -144,12 +142,6 @@ export default function BottomNav() {
           </button>
         </div>
       </nav>
-
-      {/* Modal del escáner */}
-      <QRScannerModal 
-        isOpen={scannerOpen} 
-        onClose={() => setScannerOpen(false)} 
-      />
     </>
   )
 }
