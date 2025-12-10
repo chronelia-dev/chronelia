@@ -165,3 +165,4 @@ Navegador → Vercel Serverless Function (/api/chat) → OpenAI API
 **Fix:** CORS error en producción
 
 
+

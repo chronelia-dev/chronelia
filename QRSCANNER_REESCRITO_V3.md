@@ -463,3 +463,4 @@ Esta versión 3.0 del QRScanner:
 
 
 
+

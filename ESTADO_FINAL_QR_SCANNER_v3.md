@@ -328,3 +328,4 @@ Los códigos QR deben contener JSON:
 
 
 
+

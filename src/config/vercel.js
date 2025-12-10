@@ -15,3 +15,4 @@ export const VERCEL_URL = 'https://chronelia-kloyccc7-chronelias-projects-423400
 // 5. Copia assets: xcopy /E /I /Y dist\*.* android\app\src\main\assets\public\
 // 6. Compila APK en Android Studio
 
+
