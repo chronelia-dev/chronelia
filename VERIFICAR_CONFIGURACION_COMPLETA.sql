@@ -119,6 +119,7 @@ DO $$
 DECLARE
   schema_record RECORD;
   reservas_count INTEGER;
+  tabla_existe BOOLEAN;
 BEGIN
   RAISE NOTICE '';
   RAISE NOTICE '============================================';
@@ -134,13 +135,26 @@ BEGIN
       'net', 'pgsodium', 'pgsodium_masks', 'pgtle', 
       'supabase_functions', 'supabase_migrations', 'vault', 'public', '_realtime'
     )
+    AND schema_name NOT LIKE 'pg_%'  -- Excluir todos los schemas pg_*
   LOOP
-    EXECUTE format(
-      'SELECT COUNT(*) FROM %I.reservations',
-      schema_record.schema_name
-    ) INTO reservas_count;
+    -- Verificar si la tabla reservations existe en este schema
+    SELECT EXISTS (
+      SELECT 1 
+      FROM information_schema.tables 
+      WHERE table_schema = schema_record.schema_name 
+        AND table_name = 'reservations'
+    ) INTO tabla_existe;
     
-    RAISE NOTICE 'Schema: % → Reservas: %', schema_record.schema_name, reservas_count;
+    IF tabla_existe THEN
+      EXECUTE format(
+        'SELECT COUNT(*) FROM %I.reservations',
+        schema_record.schema_name
+      ) INTO reservas_count;
+      
+      RAISE NOTICE 'Schema: % → Reservas: %', schema_record.schema_name, reservas_count;
+    ELSE
+      RAISE NOTICE 'Schema: % → ⚠️ Sin tabla reservations', schema_record.schema_name;
+    END IF;
   END LOOP;
   
   RAISE NOTICE '============================================';
