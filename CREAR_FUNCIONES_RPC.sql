@@ -13,6 +13,16 @@
 -- ============================================
 
 -- ============================================
+-- PASO 1: ELIMINAR FUNCIONES ANTIGUAS
+-- ============================================
+DROP FUNCTION IF EXISTS get_workers(text);
+DROP FUNCTION IF EXISTS get_active_reservations(text);
+DROP FUNCTION IF EXISTS get_reservation_history(text, integer);
+DROP FUNCTION IF EXISTS save_reservation(text, uuid, text, text, text, integer, integer, timestamptz, timestamptz, text, text, integer, integer);
+DROP FUNCTION IF EXISTS save_reservation(text, uuid, text, text, text, integer, integer, timestamptz, timestamptz, text, text, uuid, integer, integer);
+DROP FUNCTION IF EXISTS login_user(text, text);
+
+-- ============================================
 -- FUNCIÓN 1: get_workers
 -- Obtener todos los trabajadores de un schema
 -- ============================================
