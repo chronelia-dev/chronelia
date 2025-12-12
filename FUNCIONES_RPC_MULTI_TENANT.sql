@@ -114,6 +114,7 @@ CREATE OR REPLACE FUNCTION save_reservation(
   p_end_time timestamptz,
   p_status text,
   p_worker_name text,
+  p_worker_id uuid,
   p_group_size integer,
   p_extensions integer
 )
@@ -127,8 +128,8 @@ BEGIN
   EXECUTE format(
     'INSERT INTO %I.reservations 
      (id, customer_name, customer_email, qr_code, total_duration, actual_duration, 
-      start_time, end_time, status, worker_name, group_size, extensions)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      start_time, end_time, status, worker_name, worker_id, group_size, extensions)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      ON CONFLICT (id) DO UPDATE SET
        customer_name = EXCLUDED.customer_name,
        customer_email = EXCLUDED.customer_email,
@@ -139,13 +140,14 @@ BEGIN
        end_time = EXCLUDED.end_time,
        status = EXCLUDED.status,
        worker_name = EXCLUDED.worker_name,
+       worker_id = EXCLUDED.worker_id,
        group_size = EXCLUDED.group_size,
        extensions = EXCLUDED.extensions
      RETURNING id',
     schema_name
   ) USING reservation_id, p_customer_name, p_customer_email, p_qr_code, 
           p_total_duration, p_actual_duration, p_start_time, p_end_time, 
-          p_status, p_worker_name, p_group_size, p_extensions
+          p_status, p_worker_name, p_worker_id, p_group_size, p_extensions
   INTO result_id;
   
   RETURN result_id;
