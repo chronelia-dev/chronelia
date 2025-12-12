@@ -214,3 +214,6 @@ APK: ✅ v2.3 CORREGIDA
 
 
 
+
+
+

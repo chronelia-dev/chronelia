@@ -297,3 +297,6 @@ Tu app Chronelia v2.1 está **100% funcional** y lista para usar en producción.
 
 
 
+
+
+

@@ -166,3 +166,6 @@ Navegador → Vercel Serverless Function (/api/chat) → OpenAI API
 
 
 
+
+
+

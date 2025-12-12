@@ -432,3 +432,6 @@ Este es solo el **INICIO del sistema de IA**. Basándonos en el roadmap completo
 
 
 
+
+
+

@@ -120,3 +120,6 @@ SELECT create_business_user('business_nuevo', 'admin_nuevo', 'admin@nuevo.com', 
 
 
 
+
+
+

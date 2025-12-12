@@ -212,3 +212,6 @@ Una vez integrado Supabase:
 
 
 
+
+
+

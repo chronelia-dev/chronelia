@@ -151,3 +151,6 @@ Esta APK tiene:
 **Abre Android Studio ahora y compila. Debería funcionar sin problemas.** 🚀
 
 
+
+
+
