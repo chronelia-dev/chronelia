@@ -1,9 +1,9 @@
-import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { QrCode, LayoutDashboard, BarChart3, History, Settings } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import QRScannerModal from '@/components/QRScannerModal'
+import { Capacitor } from '@capacitor/core'
+import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning'
 
 const navItems = [
   {
@@ -29,7 +29,35 @@ const navItems = [
 ]
 
 export default function BottomNav() {
-  const [scannerOpen, setScannerOpen] = useState(false)
+  const navigate = useNavigate()
+
+  const handleScanClick = async () => {
+    // En plataformas nativas (Android/iOS), usar ML Kit
+    if (Capacitor.isNativePlatform()) {
+      try {
+        // Solicitar permisos
+        const { camera } = await BarcodeScanner.requestPermissions()
+        if (camera !== 'granted') {
+          console.error('❌ Permiso de cámara denegado')
+          return
+        }
+
+        // Abrir escáner nativo
+        const { barcodes } = await BarcodeScanner.scan()
+        if (barcodes && barcodes.length > 0) {
+          const qrData = barcodes[0].rawValue
+          console.log('✅ QR escaneado (nativo):', qrData)
+          // Navegar al escáner con los datos para procesarlos
+          navigate('/scan', { state: { scannedData: qrData } })
+        }
+      } catch (error) {
+        console.error('❌ Error al escanear QR:', error)
+      }
+    } else {
+      // En web, navegar a la página de escáner
+      navigate('/scan')
+    }
+  }
 
   return (
     <>
@@ -121,7 +149,7 @@ export default function BottomNav() {
           {/* Botón central flotante de Escanear */}
           <motion.button
             whileTap={{ scale: 0.95 }}
-            onClick={() => setScannerOpen(true)}
+            onClick={handleScanClick}
             className="absolute left-1/2 -translate-x-1/2 -top-6 flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 text-white shadow-2xl"
           >
             <div className="flex flex-col items-center">
@@ -144,12 +172,6 @@ export default function BottomNav() {
           </motion.button>
         </div>
       </nav>
-
-      {/* Modal del escáner */}
-      <QRScannerModal 
-        isOpen={scannerOpen} 
-        onClose={() => setScannerOpen(false)} 
-      />
     </>
   )
 }
