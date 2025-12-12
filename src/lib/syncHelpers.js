@@ -59,6 +59,19 @@ export async function loadActiveReservations() {
     return []
   }
 
+  // Verificar que hay un usuario con schema válido
+  const user = localStorage.getItem('chronelia_user')
+  if (!user) {
+    console.log('⚠️ No hay usuario autenticado, no se cargan reservas')
+    return []
+  }
+
+  const userData = JSON.parse(user)
+  if (!userData.schema_name) {
+    console.log('⚠️ Usuario sin schema_name, no se cargan reservas')
+    return []
+  }
+
   try {
     const { data, error } = await getActiveReservationsMultiTenant()
     
@@ -102,6 +115,19 @@ export async function loadReservationHistory(limit = 50) {
     return []
   }
 
+  // Verificar que hay un usuario con schema válido
+  const user = localStorage.getItem('chronelia_user')
+  if (!user) {
+    console.log('⚠️ No hay usuario autenticado, no se carga historial')
+    return []
+  }
+
+  const userData = JSON.parse(user)
+  if (!userData.schema_name) {
+    console.log('⚠️ Usuario sin schema_name, no se carga historial')
+    return []
+  }
+
   try {
     const { data, error } = await getReservationHistoryMultiTenant(limit)
     
@@ -139,6 +165,19 @@ export async function loadReservationHistory(limit = 50) {
 export async function loadWorkers() {
   if (isDemoMode) {
     console.log('📴 Modo demo: Sin carga desde la nube')
+    return []
+  }
+
+  // Verificar que hay un usuario con schema válido
+  const user = localStorage.getItem('chronelia_user')
+  if (!user) {
+    console.log('⚠️ No hay usuario autenticado, no se cargan trabajadores')
+    return []
+  }
+
+  const userData = JSON.parse(user)
+  if (!userData.schema_name) {
+    console.log('⚠️ Usuario sin schema_name, no se cargan trabajadores')
     return []
   }
 
