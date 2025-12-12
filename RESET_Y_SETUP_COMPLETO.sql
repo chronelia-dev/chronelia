@@ -1,416 +1,289 @@
 -- ============================================
--- CHRONELIA - RESET COMPLETO Y SETUP CON SCHEMAS
+-- RESET COMPLETO Y SETUP DE CHRONELIA
 -- ============================================
--- Este script limpia TODO y crea la estructura desde cero
--- ADVERTENCIA: Esto eliminará TODOS los datos existentes
-
--- ============================================
--- PASO 1: LIMPIEZA COMPLETA
+-- Este script ELIMINA TODO y crea desde cero
+-- ⚠️ CUIDADO: Esto borrará todos los datos existentes
 -- ============================================
 
--- Eliminar funciones existentes
-DROP FUNCTION IF EXISTS login_user(text, text);
-DROP FUNCTION IF EXISTS create_business_schema(text, text, text, text, text, text, integer);
-DROP FUNCTION IF EXISTS create_business_user(text, text, text, text, text, text);
+-- ============================================
+-- PASO 1: LIMPIAR TODO LO EXISTENTE
+-- ============================================
 
--- Eliminar schemas de negocios (agregar aquí los que tengas)
-DROP SCHEMA IF EXISTS business_demo CASCADE;
-DROP SCHEMA IF EXISTS business_bella CASCADE;
-DROP SCHEMA IF EXISTS business_prueba CASCADE;
-DROP SCHEMA IF EXISTS business_spa CASCADE;
--- Agrega aquí cualquier otro schema que tengas
+-- Eliminar funciones RPC
+DROP FUNCTION IF EXISTS login_user(text, text) CASCADE;
+DROP FUNCTION IF EXISTS get_workers(text) CASCADE;
+DROP FUNCTION IF EXISTS get_active_reservations(text) CASCADE;
+DROP FUNCTION IF EXISTS get_reservation_history(text, integer) CASCADE;
+DROP FUNCTION IF EXISTS save_reservation(text, uuid, text, text, text, integer, integer, timestamptz, timestamptz, text, text, integer, integer) CASCADE;
+DROP FUNCTION IF EXISTS save_reservation(text, uuid, text, text, text, integer, integer, timestamptz, timestamptz, text, text, uuid, integer, integer) CASCADE;
 
--- Eliminar tablas del schema public
-DROP TABLE IF EXISTS public.user_business_map CASCADE;
-DROP TABLE IF EXISTS public.ai_insights CASCADE;
-DROP TABLE IF EXISTS public.daily_stats CASCADE;
-DROP TABLE IF EXISTS public.reservations CASCADE;
-DROP TABLE IF EXISTS public.customers CASCADE;
+-- Eliminar tablas en public
 DROP TABLE IF EXISTS public.users CASCADE;
 DROP TABLE IF EXISTS public.businesses CASCADE;
 
+-- Eliminar schemas de negocios existentes (ajusta según tus schemas)
+DROP SCHEMA IF EXISTS somacafe CASCADE;
+DROP SCHEMA IF EXISTS business_test CASCADE;
+DROP SCHEMA IF EXISTS negocio_prueba CASCADE;
+
 -- ============================================
--- PASO 2: CREAR TABLA MAESTRA DE NEGOCIOS
+-- PASO 2: CREAR ESTRUCTURA BASE
 -- ============================================
 
+-- Tabla de negocios
 CREATE TABLE public.businesses (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  schema_name TEXT UNIQUE NOT NULL,
-  business_name TEXT NOT NULL,
-  contact_email TEXT,
-  contact_phone TEXT,
-  address TEXT,
-  plan_type TEXT DEFAULT 'basic',
-  max_workers INTEGER DEFAULT 5,
-  active BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  schema_name text UNIQUE NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+-- Tabla de usuarios globales
+CREATE TABLE public.users (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  username text UNIQUE NOT NULL,
+  email text,
+  password_hash text NOT NULL,
+  full_name text NOT NULL,
+  role text NOT NULL DEFAULT 'worker',
+  business_id uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+  active boolean DEFAULT true,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
 );
 
 -- Índices
-CREATE INDEX idx_businesses_schema ON businesses(schema_name);
-CREATE INDEX idx_businesses_active ON businesses(active);
+CREATE INDEX idx_users_username ON public.users(username);
+CREATE INDEX idx_users_business_id ON public.users(business_id);
 
 -- ============================================
--- PASO 3: CREAR TABLA DE MAPEO DE USUARIOS
+-- PASO 3: CREAR TU NEGOCIO Y USUARIOS
 -- ============================================
--- Esta tabla mapea usernames a sus schemas correspondientes
+-- *** EDITAR ESTOS VALORES ***
 
-CREATE TABLE public.user_business_map (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  username TEXT UNIQUE NOT NULL,
-  schema_name TEXT NOT NULL REFERENCES businesses(schema_name) ON DELETE CASCADE,
-  business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
-  business_name TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Índices
-CREATE INDEX idx_user_business_map_username ON user_business_map(username);
-CREATE INDEX idx_user_business_map_schema ON user_business_map(schema_name);
-
--- ============================================
--- PASO 4: FUNCIÓN PARA CREAR NEGOCIOS
--- ============================================
-
-CREATE OR REPLACE FUNCTION create_business_schema(
-  schema_name TEXT,
-  business_name TEXT,
-  contact_email TEXT DEFAULT NULL,
-  contact_phone TEXT DEFAULT NULL,
-  address TEXT DEFAULT NULL,
-  plan_type TEXT DEFAULT 'basic',
-  max_workers INTEGER DEFAULT 5
-) RETURNS UUID AS $$
+DO $$
 DECLARE
-  business_id UUID;
+  v_business_id uuid;
+  v_business_name text := 'SomaCafe';                    -- *** EDITAR ***
+  v_schema_name text := 'somacafe';                      -- *** EDITAR ***
+  v_admin_username text := 'admin@somacafe.com';         -- *** EDITAR ***
+  v_admin_password text := 'admin123';                   -- *** EDITAR ***
+  v_admin_fullname text := 'Admin SomaCafe';             -- *** EDITAR ***
+  v_worker1_username text := 'worker1@somacafe.com';     -- *** EDITAR ***
+  v_worker1_password text := 'worker123';                -- *** EDITAR ***
+  v_worker1_fullname text := 'Trabajador 1';             -- *** EDITAR ***
 BEGIN
-  -- Validar nombre del schema
-  IF schema_name !~ '^business_[a-z0-9_]+$' THEN
-    RAISE EXCEPTION 'El nombre del schema debe empezar con "business_" y contener solo minúsculas, números y guiones bajos';
-  END IF;
-
-  -- Crear el negocio en la tabla maestra
-  INSERT INTO public.businesses (
-    schema_name,
-    business_name,
-    contact_email,
-    contact_phone,
-    address,
-    plan_type,
-    max_workers,
-    active
-  ) VALUES (
-    schema_name,
-    business_name,
-    contact_email,
-    contact_phone,
-    address,
-    plan_type,
-    max_workers,
-    true
-  ) RETURNING id INTO business_id;
-
-  -- Crear el schema
-  EXECUTE format('CREATE SCHEMA IF NOT EXISTS %I', schema_name);
-
-  -- Crear tabla de usuarios en el schema del negocio
+  -- Crear negocio
+  INSERT INTO public.businesses (name, schema_name)
+  VALUES (v_business_name, v_schema_name)
+  RETURNING id INTO v_business_id;
+  
+  RAISE NOTICE '✅ Negocio: % (Schema: %)', v_business_name, v_schema_name;
+  
+  -- Crear schema
+  EXECUTE format('CREATE SCHEMA %I', v_schema_name);
+  
+  -- Tabla users en schema del negocio
   EXECUTE format('
     CREATE TABLE %I.users (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      username TEXT UNIQUE NOT NULL,
-      email TEXT,
-      password_hash TEXT NOT NULL,
-      full_name TEXT,
-      role TEXT DEFAULT ''worker'',
-      active BOOLEAN DEFAULT true,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      updated_at TIMESTAMPTZ DEFAULT NOW()
-    )', schema_name);
-
-  -- Crear tabla de reservas
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      username text UNIQUE NOT NULL,
+      email text,
+      password_hash text NOT NULL,
+      full_name text NOT NULL,
+      role text NOT NULL DEFAULT ''worker'',
+      active boolean DEFAULT true,
+      created_at timestamptz DEFAULT now()
+    )', v_schema_name);
+  
+  -- Tabla reservations en schema del negocio
   EXECUTE format('
     CREATE TABLE %I.reservations (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      customer_name TEXT NOT NULL,
-      customer_email TEXT,
-      qr_code TEXT,
-      total_duration INTEGER NOT NULL,
-      actual_duration INTEGER,
-      start_time TIMESTAMPTZ NOT NULL,
-      end_time TIMESTAMPTZ,
-      status TEXT DEFAULT ''active'',
-      worker_name TEXT,
-      group_size INTEGER DEFAULT 1,
-      extensions INTEGER DEFAULT 0,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    )', schema_name);
-
-  -- Crear tabla de estadísticas diarias
-  EXECUTE format('
-    CREATE TABLE %I.daily_stats (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      date DATE NOT NULL UNIQUE,
-      total_reservations INTEGER DEFAULT 0,
-      completed_reservations INTEGER DEFAULT 0,
-      cancelled_reservations INTEGER DEFAULT 0,
-      total_time INTEGER DEFAULT 0,
-      average_duration INTEGER DEFAULT 0,
-      total_revenue DECIMAL(10,2) DEFAULT 0,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    )', schema_name);
-
-  -- Crear tabla de insights de IA
-  EXECUTE format('
-    CREATE TABLE %I.ai_insights (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      insight_type TEXT NOT NULL,
-      title TEXT NOT NULL,
-      description TEXT,
-      priority TEXT DEFAULT ''medium'',
-      data JSONB,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    )', schema_name);
-
-  -- Crear índices
-  EXECUTE format('CREATE INDEX idx_%I_users_username ON %I.users(username)', schema_name, schema_name);
-  EXECUTE format('CREATE INDEX idx_%I_reservations_status ON %I.reservations(status)', schema_name, schema_name);
-  EXECUTE format('CREATE INDEX idx_%I_reservations_start ON %I.reservations(start_time)', schema_name, schema_name);
-  EXECUTE format('CREATE INDEX idx_%I_daily_stats_date ON %I.daily_stats(date)', schema_name, schema_name);
-
-  RETURN business_id;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- ============================================
--- PASO 5: FUNCIÓN PARA CREAR USUARIOS
--- ============================================
-
-CREATE OR REPLACE FUNCTION create_business_user(
-  p_schema_name TEXT,
-  p_username TEXT,
-  p_email TEXT,
-  p_password TEXT,
-  p_full_name TEXT,
-  p_role TEXT DEFAULT 'worker'
-) RETURNS UUID AS $$
-DECLARE
-  user_id UUID;
-  v_business_id UUID;
-  v_business_name TEXT;
-  v_max_workers INTEGER;
-  v_current_workers INTEGER;
-BEGIN
-  -- Validar que el negocio existe
-  SELECT id, business_name, max_workers
-  INTO v_business_id, v_business_name, v_max_workers
-  FROM public.businesses
-  WHERE schema_name = p_schema_name AND active = true;
-
-  IF v_business_id IS NULL THEN
-    RAISE EXCEPTION 'El negocio con schema "%" no existe o está inactivo', p_schema_name;
-  END IF;
-
-  -- Verificar límite de trabajadores
-  EXECUTE format('SELECT COUNT(*) FROM %I.users', p_schema_name) INTO v_current_workers;
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      customer_name text NOT NULL,
+      customer_email text,
+      qr_code text NOT NULL,
+      total_duration integer NOT NULL,
+      actual_duration integer,
+      start_time timestamptz NOT NULL,
+      end_time timestamptz,
+      status text NOT NULL DEFAULT ''active'',
+      worker_name text,
+      worker_id uuid,
+      group_size integer DEFAULT 1,
+      extensions integer DEFAULT 0,
+      created_at timestamptz DEFAULT now()
+    )', v_schema_name);
   
-  IF v_current_workers >= v_max_workers THEN
-    RAISE EXCEPTION 'Se alcanzó el límite máximo de trabajadores (%) para este negocio', v_max_workers;
-  END IF;
-
-  -- Validar que el username no existe en el mapeo global
-  IF EXISTS (SELECT 1 FROM public.user_business_map WHERE username = p_username) THEN
-    RAISE EXCEPTION 'El username "%" ya está en uso', p_username;
-  END IF;
-
-  -- Crear el usuario en el schema del negocio
+  RAISE NOTICE '✅ Tablas creadas en schema %', v_schema_name;
+  
+  -- Usuario admin en public
+  INSERT INTO public.users (username, email, password_hash, full_name, role, business_id)
+  VALUES (v_admin_username, v_admin_username, v_admin_password, v_admin_fullname, 'admin', v_business_id);
+  
+  -- Usuario admin en schema del negocio
   EXECUTE format('
-    INSERT INTO %I.users (username, email, password_hash, full_name, role, active)
-    VALUES ($1, $2, $3, $4, $5, true)
-    RETURNING id
-  ', p_schema_name) USING p_username, p_email, p_password, p_full_name, p_role
-  INTO user_id;
-
-  -- Agregar al mapeo global de usuarios
-  INSERT INTO public.user_business_map (username, schema_name, business_id, business_name)
-  VALUES (p_username, p_schema_name, v_business_id, v_business_name);
-
-  RETURN user_id;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+    INSERT INTO %I.users (username, email, password_hash, full_name, role)
+    VALUES ($1, $2, $3, $4, $5)', v_schema_name
+  ) USING v_admin_username, v_admin_username, v_admin_password, v_admin_fullname, 'admin';
+  
+  RAISE NOTICE '✅ Admin: %', v_admin_username;
+  
+  -- Trabajador en public
+  INSERT INTO public.users (username, email, password_hash, full_name, role, business_id)
+  VALUES (v_worker1_username, v_worker1_username, v_worker1_password, v_worker1_fullname, 'worker', v_business_id);
+  
+  -- Trabajador en schema del negocio
+  EXECUTE format('
+    INSERT INTO %I.users (username, email, password_hash, full_name, role)
+    VALUES ($1, $2, $3, $4, $5)', v_schema_name
+  ) USING v_worker1_username, v_worker1_username, v_worker1_password, v_worker1_fullname, 'worker';
+  
+  RAISE NOTICE '✅ Worker: %', v_worker1_username;
+END $$;
 
 -- ============================================
--- PASO 6: FUNCIÓN DE LOGIN
+-- PASO 4: CREAR FUNCIONES RPC
 -- ============================================
 
-CREATE OR REPLACE FUNCTION login_user(
-  input_username TEXT,
-  input_password TEXT
-) RETURNS TABLE (
-  success BOOLEAN,
-  message TEXT,
-  user_id UUID,
-  username TEXT,
-  email TEXT,
-  full_name TEXT,
-  role TEXT,
-  schema_name TEXT,
-  business_id UUID,
-  business_name TEXT
-) AS $$
-DECLARE
-  v_schema TEXT;
-  v_business_id UUID;
-  v_business_name TEXT;
-  v_user_record RECORD;
-  v_business_active BOOLEAN;
+-- Función: login_user
+CREATE FUNCTION login_user(input_username text, input_password text)
+RETURNS TABLE (
+  success boolean, message text, user_id uuid, username text,
+  email text, full_name text, role text, schema_name text,
+  business_id uuid, business_name text
+)
+LANGUAGE plpgsql SECURITY DEFINER
+AS $$
+DECLARE v_user RECORD; v_business RECORD;
 BEGIN
-  -- Buscar el schema del usuario en el mapeo
-  SELECT ubm.schema_name, ubm.business_id, ubm.business_name, b.active
-  INTO v_schema, v_business_id, v_business_name, v_business_active
-  FROM public.user_business_map ubm
-  JOIN public.businesses b ON ubm.business_id = b.id
-  WHERE ubm.username = input_username;
+  SELECT u.id, u.username, u.email, u.full_name, u.role, u.business_id
+  INTO v_user
+  FROM public.users u
+  WHERE u.username = input_username 
+    AND u.password_hash = input_password
+    AND u.active = true;
 
-  -- Verificar si el usuario existe
-  IF v_schema IS NULL THEN
-    RETURN QUERY SELECT false, 'Usuario no encontrado'::TEXT, NULL::UUID, NULL::TEXT, NULL::TEXT, NULL::TEXT, NULL::TEXT, NULL::TEXT, NULL::UUID, NULL::TEXT;
+  IF NOT FOUND THEN
+    RETURN QUERY SELECT false, 'Usuario o contraseña incorrectos'::text,
+      NULL::uuid, NULL::text, NULL::text, NULL::text, NULL::text, 
+      NULL::text, NULL::uuid, NULL::text;
     RETURN;
   END IF;
 
-  -- Verificar si el negocio está activo
-  IF NOT v_business_active THEN
-    RETURN QUERY SELECT false, 'Negocio inactivo'::TEXT, NULL::UUID, NULL::TEXT, NULL::TEXT, NULL::TEXT, NULL::TEXT, NULL::TEXT, NULL::UUID, NULL::TEXT;
+  SELECT b.id, b.name, b.schema_name
+  INTO v_business
+  FROM public.businesses b
+  WHERE b.id = v_user.business_id;
+
+  IF NOT FOUND THEN
+    RETURN QUERY SELECT false, 'Negocio no encontrado'::text,
+      NULL::uuid, NULL::text, NULL::text, NULL::text, NULL::text, 
+      NULL::text, NULL::uuid, NULL::text;
     RETURN;
   END IF;
 
-  -- Buscar el usuario en su schema y verificar contraseña
-  EXECUTE format('
-    SELECT id, username, email, password_hash, full_name, role, active
-    FROM %I.users
-    WHERE username = $1
-  ', v_schema) USING input_username INTO v_user_record;
-
-  -- Verificar que el usuario existe en su schema
-  IF v_user_record IS NULL THEN
-    RETURN QUERY SELECT false, 'Usuario no encontrado en el negocio'::TEXT, NULL::UUID, NULL::TEXT, NULL::TEXT, NULL::TEXT, NULL::TEXT, NULL::TEXT, NULL::UUID, NULL::TEXT;
-    RETURN;
-  END IF;
-
-  -- Verificar que el usuario está activo
-  IF NOT v_user_record.active THEN
-    RETURN QUERY SELECT false, 'Usuario inactivo'::TEXT, NULL::UUID, NULL::TEXT, NULL::TEXT, NULL::TEXT, NULL::TEXT, NULL::TEXT, NULL::UUID, NULL::TEXT;
-    RETURN;
-  END IF;
-
-  -- Verificar contraseña (comparación directa - en producción usar bcrypt)
-  IF v_user_record.password_hash != input_password THEN
-    RETURN QUERY SELECT false, 'Contraseña incorrecta'::TEXT, NULL::UUID, NULL::TEXT, NULL::TEXT, NULL::TEXT, NULL::TEXT, NULL::TEXT, NULL::UUID, NULL::TEXT;
-    RETURN;
-  END IF;
-
-  -- Login exitoso
-  RETURN QUERY SELECT 
-    true,
-    'Login exitoso'::TEXT,
-    v_user_record.id,
-    v_user_record.username,
-    v_user_record.email,
-    v_user_record.full_name,
-    v_user_record.role,
-    v_schema,
-    v_business_id,
-    v_business_name;
+  RETURN QUERY SELECT true, 'Login exitoso'::text,
+    v_user.id, v_user.username, v_user.email, v_user.full_name, v_user.role,
+    v_business.schema_name, v_business.id, v_business.name;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
+
+-- Función: get_workers
+CREATE FUNCTION get_workers(schema_name text)
+RETURNS TABLE (id uuid, username text, email text, full_name text, role text, active boolean, created_at timestamptz)
+LANGUAGE plpgsql SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY EXECUTE format(
+    'SELECT id, username, email, full_name, role, active, created_at FROM %I.users ORDER BY full_name', schema_name);
+END;
+$$;
+
+-- Función: get_active_reservations
+CREATE FUNCTION get_active_reservations(schema_name text)
+RETURNS TABLE (
+  id uuid, customer_name text, customer_email text, qr_code text,
+  total_duration integer, actual_duration integer, start_time timestamptz,
+  end_time timestamptz, status text, worker_name text, worker_id uuid,
+  group_size integer, extensions integer, created_at timestamptz
+)
+LANGUAGE plpgsql SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY EXECUTE format(
+    'SELECT id, customer_name, customer_email, qr_code, total_duration, actual_duration,
+     start_time, end_time, status, worker_name, worker_id, group_size, extensions, created_at
+     FROM %I.reservations WHERE status = ''active'' ORDER BY start_time DESC', schema_name);
+END;
+$$;
+
+-- Función: get_reservation_history
+CREATE FUNCTION get_reservation_history(schema_name text, limit_count integer DEFAULT 50)
+RETURNS TABLE (
+  id uuid, customer_name text, customer_email text, qr_code text,
+  total_duration integer, actual_duration integer, start_time timestamptz,
+  end_time timestamptz, status text, worker_name text, worker_id uuid,
+  group_size integer, extensions integer, created_at timestamptz
+)
+LANGUAGE plpgsql SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY EXECUTE format(
+    'SELECT id, customer_name, customer_email, qr_code, total_duration, actual_duration,
+     start_time, end_time, status, worker_name, worker_id, group_size, extensions, created_at
+     FROM %I.reservations WHERE status = ''completed'' 
+     ORDER BY end_time DESC LIMIT $1', schema_name) USING limit_count;
+END;
+$$;
+
+-- Función: save_reservation
+CREATE FUNCTION save_reservation(
+  schema_name text, reservation_id uuid, p_customer_name text,
+  p_customer_email text, p_qr_code text, p_total_duration integer,
+  p_actual_duration integer, p_start_time timestamptz, p_end_time timestamptz,
+  p_status text, p_worker_name text, p_worker_id uuid,
+  p_group_size integer, p_extensions integer
+)
+RETURNS uuid
+LANGUAGE plpgsql SECURITY DEFINER
+AS $$
+DECLARE result_id uuid;
+BEGIN
+  EXECUTE format(
+    'INSERT INTO %I.reservations 
+     (id, customer_name, customer_email, qr_code, total_duration, actual_duration,
+      start_time, end_time, status, worker_name, worker_id, group_size, extensions)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+     ON CONFLICT (id) DO UPDATE SET
+       status = EXCLUDED.status, end_time = EXCLUDED.end_time,
+       actual_duration = EXCLUDED.actual_duration, extensions = EXCLUDED.extensions
+     RETURNING id', schema_name
+  ) USING reservation_id, p_customer_name, p_customer_email, p_qr_code,
+          p_total_duration, p_actual_duration, p_start_time, p_end_time,
+          p_status, p_worker_name, p_worker_id, p_group_size, p_extensions
+  INTO result_id;
+  RETURN result_id;
+END;
+$$;
 
 -- ============================================
--- PASO 7: CREAR NEGOCIO Y USUARIO DE PRUEBA
+-- PASO 5: VERIFICACIÓN FINAL
 -- ============================================
 
--- Crear negocio de prueba
-SELECT create_business_schema(
-  'business_prueba',
-  'Negocio de Prueba',
-  'info@prueba.com',
-  '+34 666 777 888',
-  'Calle Principal 123',
-  'premium',
-  10
-);
-
--- Crear usuario admin
-SELECT create_business_user(
-  'business_prueba',
-  'admin',
-  'admin@prueba.com',
-  'admin123',
-  'Administrador',
-  'admin'
-);
-
--- Crear un trabajador de prueba
-SELECT create_business_user(
-  'business_prueba',
-  'trabajador',
-  'trabajador@prueba.com',
-  'trabajo123',
-  'Trabajador de Prueba',
-  'worker'
-);
+SELECT '🏢 NEGOCIOS' as "=== SECCIÓN ===", name, schema_name FROM public.businesses;
+SELECT '👥 USUARIOS' as "=== SECCIÓN ===", username, role, active FROM public.users;
+SELECT '⚙️ FUNCIONES' as "=== SECCIÓN ===", routine_name as funcion
+FROM information_schema.routines
+WHERE routine_schema = 'public' AND routine_name IN 
+  ('login_user', 'get_workers', 'get_active_reservations', 'get_reservation_history', 'save_reservation')
+ORDER BY routine_name;
 
 -- ============================================
--- PASO 8: VERIFICACIÓN
+-- ✅ ¡LISTO!
 -- ============================================
-
--- Ver negocios creados
-SELECT '=== NEGOCIOS ===' as info;
-SELECT * FROM public.businesses;
-
--- Ver mapeo de usuarios
-SELECT '=== MAPEO DE USUARIOS ===' as info;
-SELECT * FROM public.user_business_map;
-
--- Ver usuarios del negocio de prueba
-SELECT '=== USUARIOS DEL NEGOCIO ===' as info;
-SELECT * FROM business_prueba.users;
-
--- Probar login
-SELECT '=== PRUEBA DE LOGIN ===' as info;
-SELECT * FROM login_user('admin', 'admin123');
-
+-- Credenciales por defecto:
+-- Admin: admin@somacafe.com / admin123
+-- Worker: worker1@somacafe.com / worker123
 -- ============================================
--- ✅ SETUP COMPLETO
--- ============================================
-
-/*
-
-CREDENCIALES CREADAS:
-
-Admin:
-  Usuario: admin
-  Contraseña: admin123
-
-Trabajador:
-  Usuario: trabajador
-  Contraseña: trabajo123
-
-VERIFICACIÓN:
-- Negocios creados: ✓
-- Usuarios creados: ✓
-- Función de login: ✓
-
-PRÓXIMOS PASOS:
-1. Prueba el login en la app
-2. Si funciona, crea más negocios con create_business_schema()
-3. Agrega más usuarios con create_business_user()
-
-*/
-
-
-
-
-
-
-
-
